@@ -1,0 +1,32 @@
+package com.example.clinexusapp.ui.navigation
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.ui.graphics.vector.ImageVector
+
+sealed class BottomBarScreen(
+    val route: String,
+    val title: String,
+    val icon: ImageVector
+) {
+    object Dashboard : BottomBarScreen(
+        route = Screen.Dashboard.route,
+        title = "Home",
+        icon = Icons.Default.Home
+    )
+    object Doctors : BottomBarScreen(
+        route = Screen.DoctorList.route,
+        title = "Doctors",
+        icon = Icons.Default.MedicalServices
+    )
+    object Chat : BottomBarScreen(
+        route = Screen.Chat.route,
+        title = "Chat",
+        icon = Icons.Default.Chat
+    )
+    object Profile : BottomBarScreen(
+        route = Screen.Profile.route,
+        title = "Profile",
+        icon = Icons.Default.Person
+    )
+}
