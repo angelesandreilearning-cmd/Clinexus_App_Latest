@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,16 +25,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.clinexusapp.ui.components.PremiumGlassCard
+import com.example.clinexusapp.ui.components.ElegantCard
+import com.example.clinexusapp.ui.components.ElegantTextField
 import com.example.clinexusapp.ui.components.premiumClickable
-import com.example.clinexusapp.ui.theme.BluePrimary
-import com.example.clinexusapp.ui.theme.White
+import com.example.clinexusapp.ui.theme.*
 
 @Composable
 fun DoctorListScreen(onDoctorClick: (String) -> Unit) {
     var searchQuery by remember { mutableStateOf("") }
     
-    // Updated data: Only 2 dentists available in the clinic
     val allDoctors = listOf(
         Doctor("Dr. Olivia Bennett", "Dentist", 4.9),
         Doctor("Dr. Liam Carter", "Dentist", 4.8)
@@ -63,16 +63,16 @@ fun DoctorListScreen(onDoctorClick: (String) -> Unit) {
         ) {
             Column {
                 Text(
-                    text = "Dental Specialists",
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.Bold,
+                    text = "Specialists",
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.primary,
-                    letterSpacing = (-0.5).sp
+                    letterSpacing = (-1).sp
                 )
                 Text(
-                    text = "2 professionals available today",
+                    text = "2 certified professionals online",
                     fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     modifier = Modifier.padding(top = 4.dp)
                 )
             }
@@ -80,21 +80,11 @@ fun DoctorListScreen(onDoctorClick: (String) -> Unit) {
         
         Spacer(modifier = Modifier.height(28.dp))
 
-        OutlinedTextField(
+        ElegantTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            placeholder = { Text("Search specialists...", color = MaterialTheme.colorScheme.onSurfaceVariant) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .shadow(4.dp, RoundedCornerShape(20.dp)),
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-            shape = RoundedCornerShape(20.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedBorderColor = Color.Transparent,
-                focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-            )
+            label = "Find Specialist",
+            icon = Icons.Default.Search
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -105,7 +95,7 @@ fun DoctorListScreen(onDoctorClick: (String) -> Unit) {
                     visible = visible,
                     enter = fadeIn(tween(600)) + slideInVertically(tween(600)) { 50 }
                 ) {
-                    DoctorListItem(doctor, onClick = { onDoctorClick(doctor.name) })
+                    ElegantDoctorListItem(doctor, onClick = { onDoctorClick(doctor.name) })
                 }
             }
         }
@@ -115,25 +105,25 @@ fun DoctorListScreen(onDoctorClick: (String) -> Unit) {
 data class Doctor(val name: String, val specialty: String, val rating: Double)
 
 @Composable
-fun DoctorListItem(doctor: Doctor, onClick: () -> Unit) {
-    PremiumGlassCard(
+fun ElegantDoctorListItem(doctor: Doctor, onClick: () -> Unit) {
+    ElegantCard(
         modifier = Modifier
             .fillMaxWidth()
             .premiumClickable { onClick() }
     ) {
         Row(
-            modifier = Modifier.padding(4.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
                     .size(64.dp)
-                    .shadow(4.dp, CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f), CircleShape),
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f), CircleShape)
+                    .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = doctor.name.split(" ").last().take(1),
+                    text = doctor.name.take(1),
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp
@@ -142,14 +132,14 @@ fun DoctorListItem(doctor: Doctor, onClick: () -> Unit) {
             Spacer(modifier = Modifier.width(20.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = doctor.name, 
-                    fontWeight = FontWeight.ExtraBold, 
-                    fontSize = 18.sp, 
-                    color = MaterialTheme.colorScheme.primary
+                    text = doctor.name,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = doctor.specialty, 
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), 
+                    text = doctor.specialty,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -161,19 +151,19 @@ fun DoctorListItem(doctor: Doctor, onClick: () -> Unit) {
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = doctor.rating.toString(), 
-                        fontSize = 14.sp, 
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
             Button(
                 onClick = onClick,
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                shape = RoundedCornerShape(14.dp),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+                shape = RoundedCornerShape(12.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Text(text = "Book", fontWeight = FontWeight.ExtraBold)
+                Text(text = "Book", fontWeight = FontWeight.Bold, fontSize = 14.sp)
             }
         }
     }

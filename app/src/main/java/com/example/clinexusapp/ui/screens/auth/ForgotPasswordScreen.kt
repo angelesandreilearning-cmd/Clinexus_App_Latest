@@ -1,6 +1,5 @@
 package com.example.clinexusapp.ui.screens.auth
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -12,9 +11,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.clinexusapp.ui.components.ModernTextField
-import com.example.clinexusapp.ui.components.PremiumButton
-import com.example.clinexusapp.ui.components.PremiumGlassCard
+import com.example.clinexusapp.ui.components.ElegantTextField
+import com.example.clinexusapp.ui.components.ElegantButton
+import com.example.clinexusapp.ui.components.ElegantCard
 
 @Composable
 fun ForgotPasswordScreen(
@@ -23,37 +22,36 @@ fun ForgotPasswordScreen(
 ) {
     var email by remember { mutableStateOf("") }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.Center
-    ) {
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(padding)
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Reset Password",
+                text = "Recovery",
                 fontSize = 32.sp,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.primary
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.primary,
+                letterSpacing = (-1).sp
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Enter your email address and we'll\nsend you a link to reset your password.",
+                text = "Enter your email to receive a\nsecure link for password reset.",
                 fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center,
                 lineHeight = 22.sp
             )
             Spacer(modifier = Modifier.height(48.dp))
 
-            PremiumGlassCard {
-                ModernTextField(
+            ElegantCard {
+                ElegantTextField(
                     value = email,
                     onValueChange = { email = it },
                     label = "Email Address",
@@ -63,8 +61,8 @@ fun ForgotPasswordScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            PremiumButton(
-                text = "Send Reset Link",
+            ElegantButton(
+                text = "Send Link",
                 onClick = onSendResetLink
             )
 
@@ -72,7 +70,7 @@ fun ForgotPasswordScreen(
 
             TextButton(onClick = onNavigateBack) {
                 Text(
-                    text = "Back to Login", 
+                    text = "Back to login", 
                     color = MaterialTheme.colorScheme.primary, 
                     fontWeight = FontWeight.Bold
                 )

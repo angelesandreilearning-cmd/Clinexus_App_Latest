@@ -18,9 +18,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.clinexusapp.ui.theme.BluePrimary
-import com.example.clinexusapp.ui.theme.PeachPrimary
-import com.example.clinexusapp.ui.theme.White
+import com.example.clinexusapp.ui.components.ElegantTopAppBar
+import com.example.clinexusapp.ui.components.NeumorphicCard
+import com.example.clinexusapp.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,30 +34,23 @@ fun NotificationScreen(onBack: () -> Unit) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Notifications", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+            ElegantTopAppBar(
+                title = "Notifications",
+                onBack = onBack
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = SoftMist
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(vertical = 20.dp)
+            contentPadding = PaddingValues(vertical = 24.dp)
         ) {
             items(notifications) { item ->
-                NotificationCard(item)
+                TealNotificationCard(item)
             }
         }
     }
@@ -71,29 +64,24 @@ data class NotificationItem(
 )
 
 @Composable
-fun NotificationCard(item: NotificationItem) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        color = White,
-        shadowElevation = 1.dp
-    ) {
+fun TealNotificationCard(item: NotificationItem) {
+    NeumorphicCard(modifier = Modifier.fillMaxWidth()) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.Top
         ) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(44.dp)
                     .clip(CircleShape)
-                    .background(if (item.isUnread) BluePrimary.copy(alpha = 0.1f) else Color.Gray.copy(alpha = 0.1f)),
+                    .background(if (item.isUnread) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else GrayMedium),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     Icons.Default.Notifications,
                     contentDescription = null,
-                    tint = if (item.isUnread) BluePrimary else Color.Gray,
-                    modifier = Modifier.size(24.dp)
+                    tint = if (item.isUnread) MaterialTheme.colorScheme.primary else SlateGray,
+                    modifier = Modifier.size(20.dp)
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
@@ -105,21 +93,25 @@ fun NotificationCard(item: NotificationItem) {
                 ) {
                     Text(
                         text = item.title,
-                        fontSize = 16.sp,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (item.isUnread) BluePrimary else Color.DarkGray
+                        color = RoyalNavy
                     )
-                    Text(
-                        text = item.time,
-                        fontSize = 12.sp,
-                        color = Color.Gray
-                    )
+                    if (item.isUnread) {
+                        Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
+                    }
                 }
-                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = item.time,
+                    fontSize = 12.sp,
+                    color = SlateGray.copy(alpha = 0.6f),
+                    fontWeight = FontWeight.Medium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = item.description,
                     fontSize = 14.sp,
-                    color = Color.Gray,
+                    color = SlateGray,
                     lineHeight = 20.sp
                 )
             }

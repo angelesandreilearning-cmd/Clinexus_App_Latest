@@ -3,45 +3,54 @@ package com.example.clinexusapp.ui.theme
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
-// Bright & Premium Royal Blue
-val BluePrimary = Color(0xFF0077B6) 
-val BlueSecondary = Color(0xFF00B4D8)
-val BlueDark = Color(0xFF023E8A)
-val BlueLight = Color(0xFFADE8F4)
-val BlueExtraLight = Color(0xFFE0F7FA) // Even brighter and cleaner
+// Vibrant Teal Neumorphic Palette
+val DeepTeal = Color(0xFF00A896)
+val VibrantTeal = Color(0xFF00C9B1)
+val MintSparkle = Color(0xFFE0F7F4)
+val SoftMist = Color(0xFFF2F9F8)
+val RoyalNavy = Color(0xFF2C3E50)
+val PureWhite = Color(0xFFFFFFFF)
 
-// Luminous Champagne Peach
-val PeachPrimary = Color(0xFFFFE5D9) 
-val PeachLight = Color(0xFFFFF9F0) // Brighter, creamier white
-val PeachDark = Color(0xFFFEC89A)
+// Additional UI Tones
+val TealMuted = Color(0xFF7FC8C0)
+val SlateGray = Color(0xFF64748B)
+val LightSlate = Color(0xFF94A3B8)
+val ErrorRed = Color(0xFFEF4444)
 
-// Minimalist Neutral Palette
-val White = Color(0xFFFFFFFF)
-val Black = Color(0xFF1B1B1B) 
-val GrayLight = Color(0xFFFCFCFD) // Brighter, near-pure white background
-val GrayMedium = Color(0xFFF1F5F9)
-val GrayDark = Color(0xFF64748B)
+// Standard Colors (mapped for compatibility)
+val BluePrimary = DeepTeal
+val BlueSecondary = VibrantTeal
+val BlueDark = RoyalNavy
+val White = PureWhite
+val Black = RoyalNavy
+val GrayDark = SlateGray
+val GrayMedium = MintSparkle
 
-// Premium Luminous Gradients
-val PremiumBlueGradient = Brush.verticalGradient(
-    colors = listOf(BluePrimary, BlueDark)
+// Premium Gradients
+val WavyTealGradient = Brush.verticalGradient(
+    colors = listOf(
+        Color(0xFF00D2FF), // Luminous Cyan
+        VibrantTeal,       // Mid Teal
+        DeepTeal           // Deep Teal
+    )
 )
 
-val PremiumPeachGradient = Brush.verticalGradient(
-    colors = listOf(PeachPrimary, Color(0xFFFFD7BA))
+val ActionButtonGradient = Brush.linearGradient(
+    colors = listOf(
+        Color(0xFF4FC3F7), // Soft Cerulean
+        VibrantTeal        // Deep Teal
+    )
 )
 
-val SoftBlueGradient = Brush.horizontalGradient(
-    colors = listOf(BlueExtraLight, White)
+// Wave Translucency
+val WaveLayerTop = Color(0xFFFFFFFF).copy(alpha = 0.15f)
+val WaveLayerMid = Color(0xFFE0F7F4).copy(alpha = 0.25f)
+val WaveLayerBase = VibrantTeal.copy(alpha = 0.35f)
+
+val SoftMintGradient = Brush.verticalGradient(
+    colors = listOf(PureWhite, SoftMist)
 )
 
-// Material 3 Mappings
-val PrimaryBlue = BluePrimary
-val OnPrimaryBlue = White
-val PrimaryContainerBlue = BlueExtraLight
-val OnPrimaryContainerBlue = BlueDark
-
-val SecondaryPeach = PeachPrimary
-val OnSecondaryPeach = Black
-val SecondaryContainerPeach = PeachLight
-val OnSecondaryContainerPeach = PeachDark
+val PremiumBlueGradient = WavyTealGradient
+val BlueExtraLight = MintSparkle
+val LuminousAzureGradient = WavyTealGradient

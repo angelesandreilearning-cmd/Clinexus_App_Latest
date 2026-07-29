@@ -1,8 +1,6 @@
 package com.example.clinexusapp.ui.screens.auth
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -10,18 +8,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.clinexusapp.ui.components.ModernTextField
-import com.example.clinexusapp.ui.components.PremiumButton
-import com.example.clinexusapp.ui.components.PremiumGlassCard
+import com.example.clinexusapp.ui.components.*
+import com.example.clinexusapp.ui.theme.*
+import com.example.clinexusapp.util.Resource
+import com.example.clinexusapp.viewmodel.LoginViewModel
 
 @Composable
 fun LoginScreen(
+    viewModel: LoginViewModel,
     onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit,
     onNavigateToForgotPassword: () -> Unit
@@ -29,45 +26,55 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.Center
-    ) {
+    val loginState by viewModel.loginState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(loginState) {
+        if (loginState is Resource.Success) {
+            onLoginSuccess()
+            viewModel.resetState()
+        } else if (loginState is Resource.Error) {
+            snackbarHostState.showSnackbar(loginState?.message ?: "Login failed")
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = SoftMist
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(padding)
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Welcome Back",
-                fontSize = 38.sp,
-                fontWeight = FontWeight.Black,
+                text = "CliNexus",
+                fontSize = 48.sp,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
                 letterSpacing = (-1).sp
             )
             Text(
-                text = "Sign in to your account",
+                text = "Premium Portal Access",
                 fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = SlateGray,
+                modifier = Modifier.padding(bottom = 48.dp)
             )
-            
-            Spacer(modifier = Modifier.height(48.dp))
 
-            PremiumGlassCard {
-                ModernTextField(
+            NeumorphicCard {
+                MintTextField(
                     value = email,
                     onValueChange = { email = it },
                     label = "Email Address",
                     icon = Icons.Default.Email
                 )
                 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                ModernTextField(
+                MintTextField(
                     value = password,
                     onValueChange = { password = it },
                     label = "Password",
@@ -80,7 +87,7 @@ fun LoginScreen(
                         Text(
                             text = "Forgot Password?", 
                             color = MaterialTheme.colorScheme.primary, 
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
@@ -88,15 +95,16 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            PremiumButton(
-                text = "Sign In", 
-                onClick = onLoginSuccess
+            VibrantButton(
+                text = if (loginState is Resource.Loading) "Authenticating..." else "Sign In", 
+                onClick = { viewModel.login(email, password) },
+                enabled = loginState !is Resource.Loading
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "New to CliNexus? ", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(text = "New member? ", color = SlateGray)
                 TextButton(onClick = onNavigateToRegister) {
                     Text(
                         text = "Create Account", 

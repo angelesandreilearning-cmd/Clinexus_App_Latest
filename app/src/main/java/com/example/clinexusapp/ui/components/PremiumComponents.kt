@@ -1,24 +1,27 @@
 package com.example.clinexusapp.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.*
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -26,131 +29,10 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.clinexusapp.ui.theme.BluePrimary
-import com.example.clinexusapp.ui.theme.PremiumBlueGradient
-import com.example.clinexusapp.ui.theme.White
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.text.style.TextOverflow
-import com.example.clinexusapp.ui.theme.PremiumBlueGradient
-import com.example.clinexusapp.ui.theme.White
-
-@Composable
-fun PremiumCard(
-    modifier: Modifier = Modifier,
-    gradient: Brush = PremiumBlueGradient,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    var visible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { visible = true }
-
-    AnimatedVisibility(
-        visible = visible,
-        enter = fadeIn(tween(800)) + slideInVertically(tween(800)) { 30 }
-    ) {
-        Card(
-            modifier = modifier
-                .shadow(
-                    elevation = 12.dp, 
-                    shape = RoundedCornerShape(28.dp), 
-                    ambientColor = BluePrimary.copy(alpha = 0.2f)
-                )
-                .clip(RoundedCornerShape(28.dp)),
-            colors = CardDefaults.cardColors(containerColor = Color.Transparent)
-        ) {
-            Column(
-                modifier = Modifier
-                    .background(gradient)
-                    .padding(24.dp)
-            ) {
-                content()
-            }
-        }
-    }
-}
-
-@Composable
-fun PremiumButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    containerColor: Color = BluePrimary,
-    enabled: Boolean = true
-) {
-    val haptic = LocalHapticFeedback.current
-    var isPressed by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.95f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-        label = "scale"
-    )
-
-    Button(
-        onClick = { 
-            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-            onClick() 
-        },
-        enabled = enabled,
-        modifier = modifier
-            .fillMaxWidth()
-            .height(58.dp)
-            .scale(scale)
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onPress = {
-                        isPressed = true
-                        tryAwaitRelease()
-                        isPressed = false
-                    }
-                )
-            }
-            .shadow(6.dp, RoundedCornerShape(18.dp)),
-        shape = RoundedCornerShape(18.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = containerColor,
-            contentColor = White
-        )
-    ) {
-        Text(
-            text = text,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.ExtraBold,
-            letterSpacing = 0.5.sp
-        )
-    }
-}
-
-@Composable
-fun PremiumGlassCard(
-    modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Surface(
-        modifier = modifier
-            .shadow(
-                elevation = 12.dp, 
-                shape = RoundedCornerShape(24.dp), 
-                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-            )
-            .border(
-                1.5.dp, 
-                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f), 
-                RoundedCornerShape(24.dp)
-            ),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
-        shape = RoundedCornerShape(24.dp)
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            content()
-        }
-    }
-}
+import com.example.clinexusapp.ui.theme.*
 
 @Composable
 fun Modifier.premiumClickable(onClick: () -> Unit): Modifier {
@@ -162,144 +44,305 @@ fun Modifier.premiumClickable(onClick: () -> Unit): Modifier {
 }
 
 @Composable
-fun SectionTitle(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 8.dp, start = 4.dp)
-    )
+fun NeumorphicCard(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    val isDark = isSystemInDarkTheme()
+    Surface(
+        modifier = modifier
+            .shadow(
+                elevation = if (isDark) 2.dp else 6.dp,
+                shape = RoundedCornerShape(24.dp),
+                ambientColor = if (isDark) Color.Transparent else Color.Black.copy(alpha = 0.05f),
+                spotColor = if (isDark) Color.Transparent else Color.Black.copy(alpha = 0.1f)
+            ),
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = if (isDark) androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.05f)) else null
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            content()
+        }
+    }
 }
 
 @Composable
-fun ModernTextField(
+fun VibrantButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
+    val haptic = LocalHapticFeedback.current
+    var isPressed by remember { mutableStateOf(false) }
+    
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "scale"
+    )
+
+    Box(
+        modifier = modifier
+            .scale(scale)
+            .fillMaxWidth()
+            .height(64.dp)
+            .shadow(if (enabled) 10.dp else 0.dp, RoundedCornerShape(22.dp), spotColor = DeepTeal.copy(alpha = 0.3f))
+            .background(
+                brush = if (enabled) ActionButtonGradient else Brush.linearGradient(listOf(Color.LightGray, Color.Gray)),
+                shape = RoundedCornerShape(22.dp)
+            )
+            .pointerInput(enabled) {
+                if (enabled) {
+                    detectTapGestures(
+                        onPress = {
+                            isPressed = true
+                            tryAwaitRelease()
+                            isPressed = false
+                        },
+                        onTap = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onClick()
+                        }
+                    )
+                }
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Black,
+            color = if (enabled) White else Color.DarkGray,
+            letterSpacing = 0.5.sp
+        )
+    }
+}
+
+@Composable
+fun MintTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
     icon: ImageVector,
     isPassword: Boolean = false
 ) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label) },
-        leadingIcon = { Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(1.dp, RoundedCornerShape(16.dp)),
-        shape = RoundedCornerShape(16.dp),
-        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
-        colors = OutlinedTextFieldDefaults.colors(
-            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-            focusedContainerColor = MaterialTheme.colorScheme.surface,
-            unfocusedBorderColor = Color.Transparent,
-            focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-            focusedTextColor = MaterialTheme.colorScheme.onSurface
-        ),
-        singleLine = true
-    )
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val onSurfaceColor = MaterialTheme.colorScheme.onSurface
+    
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = label,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            color = onSurfaceColor.copy(alpha = 0.5f),
+            modifier = Modifier.padding(start = 6.dp, bottom = 8.dp)
+        )
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            leadingIcon = { Icon(icon, contentDescription = null, tint = primaryColor, modifier = Modifier.size(20.dp)) },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+            visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = primaryColor.copy(alpha = 0.05f),
+                focusedContainerColor = primaryColor.copy(alpha = 0.08f),
+                unfocusedBorderColor = Color.Transparent,
+                focusedBorderColor = primaryColor.copy(alpha = 0.3f)
+            ),
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(fontSize = 15.sp)
+        )
+    }
 }
 
 @Composable
-fun PremiumHeader(
+fun WavyTealHeader(
     title: String,
     subtitle: String? = null,
-    onProfileClick: () -> Unit = {},
-    onNotificationClick: () -> Unit = {}
+    onBack: (() -> Unit)? = null,
+    onSettingsClick: (() -> Unit)? = null,
+    onNotificationClick: (() -> Unit)? = null
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(PremiumBlueGradient)
-            .padding(top = 40.dp, bottom = 24.dp, start = 24.dp, end = 24.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    color = White,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Black,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                if (subtitle != null) {
-                    Text(
-                        text = subtitle,
-                        color = White.copy(alpha = 0.7f),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
-                    )
+            .height(180.dp) 
+            .drawBehind {
+                // Layer 1: Base Gradient
+                val path1 = Path().apply {
+                    moveTo(0f, 0f)
+                    lineTo(size.width, 0f)
+                    lineTo(size.width, size.height * 0.85f)
+                    quadraticTo(size.width * 0.5f, size.height * 0.98f, 0f, size.height * 0.85f)
+                    close()
                 }
+                drawPath(path1, brush = WavyTealGradient)
+
+                // Layer 2: Middle Luminous Wave
+                val path2 = Path().apply {
+                    moveTo(0f, 0f)
+                    lineTo(size.width, 0f)
+                    lineTo(size.width, size.height * 0.72f)
+                    quadraticTo(size.width * 0.5f, size.height * 0.82f, 0f, size.height * 0.68f)
+                    close()
+                }
+                drawPath(path2, color = Color(0xFFE0F7F4).copy(alpha = 0.18f))
+
+                // Layer 3: Top Luminous Wave
+                val path3 = Path().apply {
+                    moveTo(0f, 0f)
+                    lineTo(size.width, 0f)
+                    lineTo(size.width, size.height * 0.62f)
+                    quadraticTo(size.width * 0.5f, size.height * 0.72f, 0f, size.height * 0.58f)
+                    close()
+                }
+                drawPath(path3, color = Color(0xFF00D2FF).copy(alpha = 0.15f))
             }
-            
+            .padding(horizontal = 24.dp)
+    ) {
+        // Top Icon Row
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (onBack != null) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = White, modifier = Modifier.size(24.dp))
+                }
+            } else {
+                Spacer(modifier = Modifier.size(48.dp))
+            }
+
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(
-                    onClick = onNotificationClick,
-                    modifier = Modifier
-                        .size(44.dp)
-                        .background(White.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
-                ) {
-                    Icon(Icons.Default.Notifications, contentDescription = null, tint = White)
+                if (onNotificationClick != null) {
+                    IconButton(onClick = onNotificationClick) {
+                        Icon(Icons.Default.Notifications, null, tint = White, modifier = Modifier.size(22.dp))
+                    }
                 }
-                Spacer(modifier = Modifier.width(12.dp))
-                Surface(
-                    onClick = onProfileClick,
-                    modifier = Modifier.size(44.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    color = White.copy(alpha = 0.2f)
-                ) {
-                    Icon(
-                        Icons.Default.Person, 
-                        contentDescription = null, 
-                        tint = White,
-                        modifier = Modifier.padding(8.dp)
-                    )
+                if (onSettingsClick != null) {
+                    IconButton(onClick = onSettingsClick) {
+                        Icon(Icons.Default.Settings, null, tint = White, modifier = Modifier.size(22.dp))
+                    }
                 }
+                Spacer(modifier = Modifier.width(4.dp))
+                Icon(Icons.Default.SignalCellularAlt, null, tint = White, modifier = Modifier.size(16.dp).alpha(0.7f))
+                Spacer(modifier = Modifier.width(6.dp))
+                Icon(Icons.Default.BatteryFull, null, tint = White, modifier = Modifier.size(20.dp).rotate(90f).alpha(0.7f))
+            }
+        }
+
+        // Centered Content
+        Column(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(top = 15.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = title,
+                color = White,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = (-0.5).sp
+            )
+            if (subtitle != null) {
+                Text(
+                    text = subtitle,
+                    color = White.copy(alpha = 0.85f),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
     }
 }
 
+// Compatibility mappings for old names
+@Composable
+fun ElegantCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) = NeumorphicCard(modifier, content)
+
+@Composable
+fun ElegantButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, containerColor: Color = DeepTeal, contentColor: Color = White) = VibrantButton(text, onClick, modifier, enabled)
+
+@Composable
+fun ElegantHeader(title: String, subtitle: String? = null, onProfileClick: () -> Unit = {}, onNotificationClick: () -> Unit = {}) = WavyTealHeader(title, subtitle, onNotificationClick = onNotificationClick)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PremiumTopAppBar(
-    title: String,
-    onBack: (() -> Unit)? = null,
-    actions: @Composable RowScope.() -> Unit = {}
-) {
+fun ElegantTopAppBar(title: String, onBack: (() -> Unit)? = null, actions: @Composable RowScope.() -> Unit = {}) {
     CenterAlignedTopAppBar(
-        title = {
+        title = { 
             Text(
-                text = title,
-                fontWeight = FontWeight.ExtraBold,
+                text = title, 
+                fontWeight = FontWeight.Bold, 
                 fontSize = 20.sp,
-                color = MaterialTheme.colorScheme.primary
-            )
+                color = MaterialTheme.colorScheme.onBackground 
+            ) 
         },
         navigationIcon = {
             if (onBack != null) {
                 IconButton(onClick = onBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
                 }
             }
         },
         actions = actions,
-        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.95f)
-        ),
-        modifier = Modifier.shadow(1.dp)
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
     )
 }
+
+@Composable
+fun PremiumGlassCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) = NeumorphicCard(modifier, content)
+
+@Composable
+fun PremiumButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, containerColor: Color = DeepTeal) = VibrantButton(text, onClick, modifier, enabled)
+
+@Composable
+fun PremiumHeader(title: String, subtitle: String? = null, onProfileClick: () -> Unit = {}, onNotificationClick: () -> Unit = {}) = WavyTealHeader(title, subtitle, onNotificationClick = onNotificationClick)
+
+@Composable
+fun PremiumTopAppBar(title: String, onBack: (() -> Unit)? = null, actions: @Composable RowScope.() -> Unit = {}) = ElegantTopAppBar(title, onBack, actions)
+
+@Composable
+fun ElegantDoctorSummary(name: String) {
+    NeumorphicCard {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(60.dp)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), RoundedCornerShape(14.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = name.take(2).uppercase(), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 22.sp)
+            }
+            Spacer(modifier = Modifier.width(18.dp))
+            Column {
+                Text(text = name, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface)
+                Text(text = "Certified Dental Specialist", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 14.sp)
+            }
+        }
+    }
+}
+
+@Composable
+fun SectionTitle(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onBackground,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp, start = 4.dp)
+    )
+}
+
+@Composable
+fun ModernTextField(value: String, onValueChange: (String) -> Unit, label: String, icon: ImageVector, isPassword: Boolean = false) = MintTextField(value, onValueChange, label, icon, isPassword)
+
+@Composable
+fun ElegantTextField(value: String, onValueChange: (String) -> Unit, label: String, icon: ImageVector, isPassword: Boolean = false) = MintTextField(value, onValueChange, label, icon, isPassword)

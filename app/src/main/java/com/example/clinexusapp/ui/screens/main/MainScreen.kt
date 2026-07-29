@@ -1,13 +1,19 @@
 package com.example.clinexusapp.ui.screens.main
 
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -23,19 +29,26 @@ import com.example.clinexusapp.ui.screens.dashboard.DashboardScreen
 import com.example.clinexusapp.ui.screens.doctors.DoctorListScreen
 import com.example.clinexusapp.ui.screens.chat.ChatScreen
 import com.example.clinexusapp.ui.screens.profile.ProfileScreen
-import com.example.clinexusapp.ui.theme.BluePrimary
-import com.example.clinexusapp.viewmodel.SettingsViewModel
+import com.example.clinexusapp.ui.theme.*
+import com.example.clinexusapp.util.SessionManager
+import com.example.clinexusapp.viewmodel.*
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.clinexusapp.api.AuthRepository
+import com.example.clinexusapp.api.RetrofitClient
 
 @Composable
 fun MainScreen(rootNavController: NavHostController, settingsViewModel: SettingsViewModel) {
+    val repository = AuthRepository(RetrofitClient.instance)
+    val factory = ViewModelFactory(repository)
     val navController = rememberNavController()
     Scaffold(
-        bottomBar = { BottomBar(navController = navController) }
+        bottomBar = { TealBottomBar(navController = navController) },
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = Screen.Dashboard.route,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
         ) {
             composable(route = Screen.Dashboard.route) {
                 DashboardScreen(navController, rootNavController)
@@ -48,17 +61,20 @@ fun MainScreen(rootNavController: NavHostController, settingsViewModel: Settings
                 )
             }
             composable(route = Screen.Chat.route) {
-                ChatScreen(onBack = { navController.popBackStack() })
+                val chatViewModel: ChatViewModel = viewModel(factory = factory)
+                ChatScreen(onBack = { navController.popBackStack() }, viewModel = chatViewModel)
             }
             composable(route = Screen.Profile.route) {
                 ProfileScreen(
                     onLogout = {
+                        SessionManager.logout()
                         rootNavController.navigate(Screen.Login.route) {
                             popUpTo(Screen.Home.route) { inclusive = true }
                         }
                     },
+                    onBack = { navController.popBackStack() },
                     onNavigateToSettings = {
-                        rootNavController.navigate(Screen.Settings.route)
+                        navController.navigate(Screen.Settings.route)
                     }
                 )
             }
@@ -67,7 +83,7 @@ fun MainScreen(rootNavController: NavHostController, settingsViewModel: Settings
 }
 
 @Composable
-fun BottomBar(navController: NavHostController) {
+fun TealBottomBar(navController: NavHostController) {
     val screens = listOf(
         BottomBarScreen.Dashboard,
         BottomBarScreen.Doctors,
@@ -77,53 +93,72 @@ fun BottomBar(navController: NavHostController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-        contentColor = BluePrimary,
-        tonalElevation = 8.dp,
-        modifier = Modifier.shadow(16.dp, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 20.dp)
+            .shadow(12.dp, RoundedCornerShape(24.dp)),
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surface
     ) {
-        screens.forEach { screen ->
-            AddItem(
-                screen = screen,
-                currentDestination = currentDestination,
-                navController = navController
-            )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(72.dp)
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            screens.forEach { screen ->
+                val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+                TealNavItem(
+                    screen = screen,
+                    isSelected = isSelected,
+                    onClick = {
+                        navController.navigate(screen.route) {
+                            popUpTo(navController.graph.findStartDestination().id)
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
         }
     }
 }
 
 @Composable
-fun RowScope.AddItem(
+fun TealNavItem(
     screen: BottomBarScreen,
-    currentDestination: NavDestination?,
-    navController: NavHostController
+    isSelected: Boolean,
+    onClick: () -> Unit
 ) {
-    NavigationBarItem(
-        label = {
-            Text(text = screen.title)
-        },
-        icon = {
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val contentColor = if (isSelected) primaryColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+    val highlightColor = primaryColor.copy(alpha = 0.12f)
+    
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(if (isSelected) highlightColor else Color.Transparent)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 20.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
                 imageVector = screen.icon,
-                contentDescription = "Navigation Icon"
+                contentDescription = screen.title,
+                tint = contentColor,
+                modifier = Modifier.size(24.dp)
             )
-        },
-        selected = currentDestination?.hierarchy?.any {
-            it.route == screen.route
-        } == true,
-        onClick = {
-            navController.navigate(screen.route) {
-                popUpTo(navController.graph.findStartDestination().id)
-                launchSingleTop = true
+            if (isSelected) {
+                Box(
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                        .size(4.dp)
+                        .background(primaryColor, CircleShape)
+                )
             }
-        },
-        colors = NavigationBarItemDefaults.colors(
-            selectedIconColor = BluePrimary,
-            selectedTextColor = BluePrimary,
-            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            indicatorColor = MaterialTheme.colorScheme.secondaryContainer
-        )
-    )
+        }
+    }
 }

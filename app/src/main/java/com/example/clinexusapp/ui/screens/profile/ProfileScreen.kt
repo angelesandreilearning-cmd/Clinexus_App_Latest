@@ -1,164 +1,182 @@
 package com.example.clinexusapp.ui.screens.profile
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.clinexusapp.ui.components.PremiumButton
+import com.example.clinexusapp.ui.components.*
+import com.example.clinexusapp.ui.theme.*
+import com.example.clinexusapp.util.SessionManager
 import kotlinx.coroutines.launch
 
 @Composable
-fun ProfileScreen(onLogout: () -> Unit, onNavigateToSettings: () -> Unit) {
+fun ProfileScreen(onLogout: () -> Unit, onBack: () -> Unit, onNavigateToSettings: () -> Unit) {
+    val user by SessionManager.currentUser.collectAsState()
+    val patientName = user?.firstName ?: "Ashley Torres"
+    val patientEmail = user?.email ?: "ashley@example.com"
+
     var isEditing by remember { mutableStateOf(false) }
-    var name by remember { mutableStateOf("Angel") }
-    var email by remember { mutableStateOf("angel@example.com") }
-    var phone by remember { mutableStateOf("+1 234 567 8900") }
-    var showDialog by remember { mutableStateOf(false) }
+    var name by remember { mutableStateOf(patientName) }
+    var email by remember { mutableStateOf(patientEmail) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            confirmButton = {
-                TextButton(onClick = { showDialog = false }) { Text("Close") }
-            },
-            title = { Text("Security Update") },
-            text = { Text("The Change Password feature is being updated for premium security. Please check back soon.") }
-        )
-    }
-
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color.Transparent
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(padding)
-                .padding(24.dp)
+                .padding(bottom = padding.calculateBottomPadding())
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(
+            WavyTealHeader(
+                title = "Profile",
+                onBack = onBack,
+                onSettingsClick = onNavigateToSettings
+            )
+            
+            Column(
                 modifier = Modifier
-                    .size(120.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .offset(y = (-30).dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(
-                    Icons.Default.Person, 
-                    contentDescription = null, 
-                    modifier = Modifier.size(60.dp), 
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (isEditing) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Name") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text("Email") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = phone,
-                    onValueChange = { phone = it },
-                    label = { Text("Phone") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-                PremiumButton(
-                    text = "Save Changes", 
-                    onClick = { 
-                        isEditing = false 
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Profile updated successfully")
+                Surface(
+                    modifier = Modifier.size(110.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 8.dp,
+                    border = androidx.compose.foundation.BorderStroke(4.dp, MaterialTheme.colorScheme.surface)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.Person, null, modifier = Modifier.size(70.dp), tint = MaterialTheme.colorScheme.primary)
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(20.dp))
+                
+                NeumorphicCard(modifier = Modifier.fillMaxWidth()) {
+                    if (isEditing) {
+                        MintTextField(value = name, onValueChange = { name = it }, label = "Full Name", icon = Icons.Default.Badge)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        MintTextField(value = email, onValueChange = { email = it }, label = "Email Address", icon = Icons.Default.Email)
+                    } else {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                            Text(text = name, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onBackground)
+                            Text(text = email, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Row(
+                                modifier = Modifier
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f), RoundedCornerShape(12.dp))
+                                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default.Verified, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "VERIFIED PATIENT", 
+                                    fontSize = 11.sp, 
+                                    fontWeight = FontWeight.Black,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    letterSpacing = 1.sp
+                                )
+                            }
                         }
                     }
+                }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    ProfileMenuItem(
+                        title = "Personal Information", 
+                        icon = Icons.Default.PersonOutline,
+                        iconColor = Color(0xFF00C9B1),
+                        iconBg = Color(0xFFE0F7F4)
+                    ) {
+                        scope.launch { snackbarHostState.showSnackbar("ACCESSING: Personal Data") }
+                    }
+                    ProfileMenuItem(
+                        title = "Medical Records", 
+                        icon = Icons.Default.MedicalInformation,
+                        iconColor = Color(0xFF0288D1),
+                        iconBg = Color(0xFFE1F5FE)
+                    ) {
+                        scope.launch { snackbarHostState.showSnackbar("ACCESSING: Clinical Records") }
+                    }
+                    ProfileMenuItem(
+                        title = "Change Password", 
+                        icon = Icons.Default.LockOpen,
+                        iconColor = Color(0xFF64748B),
+                        iconBg = Color(0xFFF1F5F9)
+                    ) {
+                        scope.launch { snackbarHostState.showSnackbar("REDIRECTING: Security Protocol") }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(36.dp))
+                VibrantButton(
+                    text = if (isEditing) "Save Profile" else "Edit Profile",
+                    onClick = { 
+                        if (isEditing) {
+                            scope.launch { snackbarHostState.showSnackbar("Profile updated successfully") }
+                        }
+                        isEditing = !isEditing 
+                    }
                 )
-            } else {
-                Text(
-                    text = name, 
-                    fontSize = 26.sp, 
-                    fontWeight = FontWeight.Bold, 
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(text = email, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(modifier = Modifier.height(32.dp))
-
-                ProfileMenuItem(title = "Edit Profile", icon = Icons.Default.Person) {
-                    isEditing = true
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                TextButton(onClick = onLogout) {
+                    Text(text = "Log Out", color = ErrorRed, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
-                ProfileMenuItem(title = "Settings", icon = Icons.Default.Settings) {
-                    onNavigateToSettings()
-                }
-                ProfileMenuItem(title = "Change Password", icon = Icons.Default.Lock) { 
-                    showDialog = true 
-                }
-                ProfileMenuItem(title = "Logout", icon = Icons.AutoMirrored.Filled.Logout, tint = Color.Red, onClick = onLogout)
             }
-
-            Spacer(modifier = Modifier.height(40.dp))
-            Text(text = "Version 1.0.0", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
         }
     }
 }
 
 @Composable
-fun ProfileMenuItem(title: String, icon: ImageVector, tint: Color? = null, onClick: () -> Unit) {
-    val iconTint = tint ?: MaterialTheme.colorScheme.primary
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        onClick = onClick,
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 1.dp
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(icon, contentDescription = null, tint = iconTint)
-            Spacer(modifier = Modifier.width(16.dp))
+fun ProfileMenuItem(title: String, icon: ImageVector, iconColor: Color, iconBg: Color, onClick: () -> Unit) {
+    NeumorphicCard(modifier = Modifier.fillMaxWidth().clickable { onClick() }) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(46.dp)
+                    .background(iconBg, RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, null, tint = iconColor, modifier = Modifier.size(24.dp))
+            }
+            Spacer(modifier = Modifier.width(18.dp))
             Text(
                 text = title, 
                 modifier = Modifier.weight(1f), 
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
+                fontWeight = FontWeight.Bold, 
+                color = MaterialTheme.colorScheme.onSurface, 
+                fontSize = 16.sp
             )
-            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f), modifier = Modifier.size(22.dp))
         }
     }
 }

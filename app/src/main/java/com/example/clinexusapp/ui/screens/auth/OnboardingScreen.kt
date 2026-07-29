@@ -21,9 +21,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.clinexusapp.ui.components.PremiumButton
-import com.example.clinexusapp.ui.theme.PremiumBlueGradient
-import com.example.clinexusapp.ui.theme.White
+import com.example.clinexusapp.ui.components.ElegantButton
+import com.example.clinexusapp.ui.components.ElegantCard
+import com.example.clinexusapp.ui.theme.*
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -33,9 +33,9 @@ fun OnboardingScreen(onFinish: () -> Unit) {
     val scope = rememberCoroutineScope()
 
     val onboardingData = listOf(
-        OnboardingPage("Welcome to CliNexus", "Your complete dental health companion in the palm of your hand."),
-        OnboardingPage("Consult Top Dentists", "Book appointments and chat with specialists anytime, anywhere."),
-        OnboardingPage("Manage Your Health", "Keep track of your dental appointments and records easily.")
+        OnboardingPage("Expert Dental Care", "Consult with top-tier dental specialists from the comfort of your home."),
+        OnboardingPage("Smart Scheduling", "Book and manage your appointments with our intelligent clinic system."),
+        OnboardingPage("Health Records", "Keep your dental history and treatment plans securely organized.")
     )
 
     Column(
@@ -53,24 +53,25 @@ fun OnboardingScreen(onFinish: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
+                .padding(horizontal = 32.dp, vertical = 40.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             // Page Indicator
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 repeat(3) { index ->
                     val isSelected = pagerState.currentPage == index
                     Box(
                         modifier = Modifier
-                            .size(if (isSelected) 10.dp else 8.dp)
-                            .clip(CircleShape)
+                            .width(if (isSelected) 24.dp else 8.dp)
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp))
                             .background(
                                 if (isSelected) MaterialTheme.colorScheme.primary 
-                                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                                else MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                             )
                             .clickable {
                                 scope.launch { pagerState.animateScrollToPage(index) }
@@ -79,7 +80,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                 }
             }
 
-            PremiumButton(
+            ElegantButton(
                 text = if (pagerState.currentPage < 2) "Continue" else "Get Started",
                 onClick = {
                     if (pagerState.currentPage < 2) {
@@ -92,9 +93,11 @@ fun OnboardingScreen(onFinish: () -> Unit) {
 
             TextButton(onClick = onFinish) {
                 Text(
-                    text = "Skip Tour", 
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.SemiBold
+                    text = "SKIP", 
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp,
+                    fontSize = 12.sp
                 )
             }
         }
@@ -112,38 +115,42 @@ fun OnboardingContent(page: OnboardingPage) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Box(
-            modifier = Modifier
-                .size(220.dp)
-                .background(
-                    MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f), 
-                    shape = RoundedCornerShape(32.dp)
-                ),
-            contentAlignment = Alignment.Center
+        ElegantCard(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(
-                Icons.Default.HealthAndSafety, 
-                contentDescription = null, 
-                tint = MaterialTheme.colorScheme.primary, 
-                modifier = Modifier.size(80.dp)
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Surface(
+                    modifier = Modifier.size(100.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            Icons.Default.HealthAndSafety, 
+                            contentDescription = null, 
+                            tint = MaterialTheme.colorScheme.primary, 
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(40.dp))
+                Text(
+                    text = page.title,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = page.description,
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center,
+                    lineHeight = 24.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
         }
-        Spacer(modifier = Modifier.height(48.dp))
-        Text(
-            text = page.title,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-            letterSpacing = (-0.5).sp
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = page.description,
-            fontSize = 16.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            lineHeight = 24.sp
-        )
     }
 }

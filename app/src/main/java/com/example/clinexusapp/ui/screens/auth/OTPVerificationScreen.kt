@@ -1,6 +1,5 @@
 package com.example.clinexusapp.ui.screens.auth
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pin
@@ -13,9 +12,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.clinexusapp.ui.components.ModernTextField
-import com.example.clinexusapp.ui.components.PremiumButton
-import com.example.clinexusapp.ui.components.PremiumGlassCard
+import com.example.clinexusapp.ui.components.ElegantTextField
+import com.example.clinexusapp.ui.components.ElegantButton
+import com.example.clinexusapp.ui.components.ElegantCard
 
 @Composable
 fun OTPVerificationScreen(
@@ -25,47 +24,46 @@ fun OTPVerificationScreen(
 ) {
     var otpCode by remember { mutableStateOf("") }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.Center
-    ) {
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(padding)
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Verify Phone",
+                text = "Verification",
                 fontSize = 32.sp,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.primary
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.primary,
+                letterSpacing = (-1).sp
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Enter the 6-digit code sent to\n$phoneNumber",
+                text = "Enter the secure code sent to\n$phoneNumber",
                 fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center,
                 lineHeight = 22.sp
             )
             Spacer(modifier = Modifier.height(48.dp))
 
-            PremiumGlassCard {
-                ModernTextField(
+            ElegantCard {
+                ElegantTextField(
                     value = otpCode,
                     onValueChange = { if (it.length <= 6) otpCode = it },
-                    label = "6-Digit Code",
+                    label = "Activation Code",
                     icon = Icons.Default.Pin
                 )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            PremiumButton(
+            ElegantButton(
                 text = "Verify Code",
                 onClick = onVerifySuccess
             )
@@ -73,7 +71,7 @@ fun OTPVerificationScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "Didn't receive a code? ", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(text = "Code not received? ", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                 TextButton(onClick = onResendOTP) {
                     Text(
                         text = "Resend", 

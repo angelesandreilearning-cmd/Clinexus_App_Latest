@@ -14,24 +14,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.clinexusapp.ui.theme.PeachPrimary
-import com.example.clinexusapp.ui.theme.PremiumBlueGradient
+import com.example.clinexusapp.ui.theme.*
+import com.example.clinexusapp.util.SessionManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun SplashScreen(onNavigateToOnboarding: () -> Unit) {
-    val scale = remember { Animatable(0.6f) }
+fun SplashScreen(
+    onNavigateToOnboarding: () -> Unit,
+    onNavigateToHome: () -> Unit
+) {
+    val scale = remember { Animatable(0.8f) }
     val alpha = remember { Animatable(0f) }
 
     LaunchedEffect(Unit) {
         launch {
             scale.animateTo(
                 targetValue = 1f,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
-                )
+                animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing)
             )
         }
         launch {
@@ -41,13 +41,17 @@ fun SplashScreen(onNavigateToOnboarding: () -> Unit) {
             )
         }
         delay(2500)
-        onNavigateToOnboarding()
+        if (SessionManager.isLoggedIn) {
+            onNavigateToHome()
+        } else {
+            onNavigateToOnboarding()
+        }
     }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(PremiumBlueGradient),
+            .background(MaterialTheme.colorScheme.primary),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -55,33 +59,34 @@ fun SplashScreen(onNavigateToOnboarding: () -> Unit) {
         ) {
             Text(
                 text = "CliNexus",
-                color = PeachPrimary,
-                fontSize = 56.sp,
-                fontWeight = FontWeight.Black,
-                letterSpacing = (-2).sp,
+                color = MaterialTheme.colorScheme.onPrimary,
+                fontSize = 52.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = (-1).sp,
                 modifier = Modifier
                     .scale(scale.value)
                     .alpha(alpha.value)
             )
             Text(
-                text = "Premium Dental Care",
-                color = PeachPrimary.copy(alpha = 0.7f),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                letterSpacing = 2.sp,
+                text = "TRUSTED DENTAL CARE",
+                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 4.sp,
                 modifier = Modifier
-                    .padding(top = 8.dp)
+                    .padding(top = 12.dp)
                     .alpha(alpha.value)
             )
         }
         
         Text(
             text = "v1.0.0",
-            color = Color.White.copy(alpha = 0.3f),
+            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f),
             fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 32.dp)
+                .padding(bottom = 48.dp)
         )
     }
 }
