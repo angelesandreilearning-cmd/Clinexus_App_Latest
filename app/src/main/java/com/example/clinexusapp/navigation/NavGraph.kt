@@ -112,7 +112,9 @@ fun SetupNavGraph(navController: NavHostController, settingsViewModel: SettingsV
             AppointmentBookingScreen(
                 onBack = { navController.popBackStack() },
                 onBookSuccess = {
-                    navController.popBackStack()
+                    navController.navigate(Screen.Dashboard.route) {
+                        popUpTo(Screen.Dashboard.route) { inclusive = true }
+                    }
                 }
             )
         }

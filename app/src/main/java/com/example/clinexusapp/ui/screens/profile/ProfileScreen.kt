@@ -60,7 +60,7 @@ fun ProfileScreen(onLogout: () -> Unit, onBack: () -> Unit, onNavigateToSettings
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
-                    .offset(y = (-30).dp),
+                    .offset(y = (-15).dp), // Subtly touching the wave
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Surface(
@@ -75,7 +75,7 @@ fun ProfileScreen(onLogout: () -> Unit, onBack: () -> Unit, onNavigateToSettings
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 
                 NeumorphicCard(modifier = Modifier.fillMaxWidth()) {
                     if (isEditing) {
@@ -84,7 +84,7 @@ fun ProfileScreen(onLogout: () -> Unit, onBack: () -> Unit, onNavigateToSettings
                         MintTextField(value = email, onValueChange = { email = it }, label = "Email Address", icon = Icons.Default.Email)
                     } else {
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                            Text(text = name, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onBackground)
+                            Text(text = name, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onBackground)
                             Text(text = email, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                             Spacer(modifier = Modifier.height(12.dp))
                             Row(
@@ -107,7 +107,7 @@ fun ProfileScreen(onLogout: () -> Unit, onBack: () -> Unit, onNavigateToSettings
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(20.dp))
                 
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     ProfileMenuItem(

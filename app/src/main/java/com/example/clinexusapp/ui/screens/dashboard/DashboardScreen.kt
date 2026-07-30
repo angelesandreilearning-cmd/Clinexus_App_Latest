@@ -108,7 +108,7 @@ fun DashboardScreen(
                 }
 
                 item {
-                    Column(modifier = Modifier.padding(horizontal = 24.dp).padding(top = 16.dp)) {
+                    Column(modifier = Modifier.padding(horizontal = 24.dp).padding(top = 10.dp)) {
                         Text(
                             text = "Upcoming Appointment",
                             fontSize = 18.sp,

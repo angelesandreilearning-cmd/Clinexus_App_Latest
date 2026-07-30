@@ -8,8 +8,10 @@ data class LoginResponse(
 )
 
 data class PatientInfo(
-    val id: String,
-    val email: String,
-    val firstName: String,
-    val lastName: String
+    val accountID: Int,
+    val patientID: Int,
+    val role: String,
+    val email: String? = null,
+    val firstName: String? = null,
+    val lastName: String? = null
 )

@@ -148,7 +148,7 @@ fun MintTextField(
             visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedContainerColor = primaryColor.copy(alpha = 0.05f),
-                focusedContainerColor = primaryColor.copy(alpha = 0.08f),
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
                 unfocusedBorderColor = Color.Transparent,
                 focusedBorderColor = primaryColor.copy(alpha = 0.3f)
             ),
@@ -169,14 +169,14 @@ fun WavyTealHeader(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(180.dp) 
+            .height(175.dp) // Subtle curve height
             .drawBehind {
                 // Layer 1: Base Gradient
                 val path1 = Path().apply {
                     moveTo(0f, 0f)
                     lineTo(size.width, 0f)
                     lineTo(size.width, size.height * 0.85f)
-                    quadraticTo(size.width * 0.5f, size.height * 0.98f, 0f, size.height * 0.85f)
+                    quadraticTo(size.width * 0.5f, size.height * 0.95f, 0f, size.height * 0.85f)
                     close()
                 }
                 drawPath(path1, brush = WavyTealGradient)
@@ -185,21 +185,21 @@ fun WavyTealHeader(
                 val path2 = Path().apply {
                     moveTo(0f, 0f)
                     lineTo(size.width, 0f)
-                    lineTo(size.width, size.height * 0.72f)
-                    quadraticTo(size.width * 0.5f, size.height * 0.82f, 0f, size.height * 0.68f)
+                    lineTo(size.width, size.height * 0.7f)
+                    quadraticTo(size.width * 0.5f, size.height * 0.82f, 0f, size.height * 0.65f)
                     close()
                 }
-                drawPath(path2, color = Color(0xFFE0F7F4).copy(alpha = 0.18f))
+                drawPath(path2, color = Color(0xFFE0F7F4).copy(alpha = 0.15f))
 
-                // Layer 3: Top Luminous Wave
+                // Layer 3: Top Soft Wave
                 val path3 = Path().apply {
                     moveTo(0f, 0f)
                     lineTo(size.width, 0f)
-                    lineTo(size.width, size.height * 0.62f)
-                    quadraticTo(size.width * 0.5f, size.height * 0.72f, 0f, size.height * 0.58f)
+                    lineTo(size.width, size.height * 0.6f)
+                    quadraticTo(size.width * 0.5f, size.height * 0.72f, 0f, size.height * 0.55f)
                     close()
                 }
-                drawPath(path3, color = Color(0xFF00D2FF).copy(alpha = 0.15f))
+                drawPath(path3, color = Color(0xFF00D2FF).copy(alpha = 0.12f))
             }
             .padding(horizontal = 24.dp)
     ) {
@@ -231,8 +231,8 @@ fun WavyTealHeader(
                     }
                 }
                 Spacer(modifier = Modifier.width(4.dp))
-                Icon(Icons.Default.SignalCellularAlt, null, tint = White, modifier = Modifier.size(16.dp).alpha(0.7f))
-                Spacer(modifier = Modifier.width(6.dp))
+                Icon(Icons.Default.SignalCellularAlt, null, tint = White, modifier = Modifier.size(18.dp).alpha(0.7f))
+                Spacer(modifier = Modifier.width(8.dp))
                 Icon(Icons.Default.BatteryFull, null, tint = White, modifier = Modifier.size(20.dp).rotate(90f).alpha(0.7f))
             }
         }
