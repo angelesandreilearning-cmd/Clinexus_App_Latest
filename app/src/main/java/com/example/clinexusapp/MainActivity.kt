@@ -27,7 +27,7 @@ class MainActivity : ComponentActivity() {
             ClinexusAppTheme(darkTheme = isDarkMode) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = MaterialTheme.colorScheme.background,
                 ) {
                     val navController = rememberNavController()
                     SetupNavGraph(navController = navController, settingsViewModel = settingsViewModel)

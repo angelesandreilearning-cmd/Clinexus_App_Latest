@@ -22,7 +22,7 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
             val request = LoginRequest(email, password)
             val result = repository.login(request)
             
-            if (result is Resource.Success && result.data?.token != null && result.data.patient != null) {
+            if (result is Resource.Success && (result.data?.token != null) && (result.data.patient != null)) {
                 SessionManager.saveSession(result.data.token, result.data.patient)
             }
             

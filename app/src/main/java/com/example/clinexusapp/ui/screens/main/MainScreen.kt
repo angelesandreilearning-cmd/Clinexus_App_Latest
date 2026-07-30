@@ -52,7 +52,7 @@ fun MainScreen(rootNavController: NavHostController, settingsViewModel: Settings
         ) {
             composable(route = Screen.Dashboard.route) {
                 val dashboardViewModel: DashboardViewModel = viewModel(factory = factory)
-                DashboardScreen(dashboardViewModel, navController, rootNavController)
+                DashboardScreen(dashboardViewModel, rootNavController)
             }
             composable(route = Screen.DoctorList.route) {
                 DoctorListScreen(

@@ -7,7 +7,7 @@ import retrofit2.http.*
 interface ApiService {
     @POST("api/patient-login")
     suspend fun loginPatient(
-        @Body request: LoginRequest
+        @Body request: LoginRequest,
     ): Response<LoginResponse>
 
     @POST("api/patient-register")

@@ -2,6 +2,7 @@ package com.example.clinexusapp.util
 
 import android.content.Context
 import android.util.Log
+import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.example.clinexusapp.model.PatientInfo
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
  * Secure Session Manager (Native Android equivalent to Flutter Secure Storage)
  * Handles hardware-backed encryption for JWT tokens and sensitive patient data.
  */
+@Suppress("DEPRECATION") // EncryptedSharedPreferences is deprecated in favor of Jetpack DataStore + Tink
 object SessionManager {
     private const val TAG = "SessionManager"
     private const val PREF_NAME = "secure_session_prefs"
@@ -35,7 +37,9 @@ object SessionManager {
             try {
                 // Recovery path: clear the preferences file and try again
                 // This usually fixes issues where the Keystore is corrupted or the master key is inaccessible
-                context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit().clear().apply()
+                context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit(commit = true) {
+                    clear()
+                }
                 sharedPreferences = createSharedPreferences(context)
             } catch (recoveryException: Exception) {
                 Log.e(TAG, "Recovery failed, session management will be unavailable", recoveryException)
@@ -65,7 +69,7 @@ object SessionManager {
             PREF_NAME,
             masterKey,
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
         )
     }
 
@@ -73,10 +77,9 @@ object SessionManager {
         _token = token
         _currentUser.value = patient
 
-        sharedPreferences?.edit()?.apply {
+        sharedPreferences?.edit {
             putString(KEY_TOKEN, token)
             putString(KEY_PATIENT_INFO, Gson().toJson(patient))
-            apply()
             Log.d(TAG, "Session saved successfully for patient ID: ${patient.patientID}")
         } ?: Log.w(TAG, "saveSession called but sharedPreferences is null")
     }
@@ -84,8 +87,10 @@ object SessionManager {
     fun logout() {
         _token = null
         _currentUser.value = null
-        sharedPreferences?.edit()?.clear()?.apply()
-            ?: Log.w(TAG, "logout called but sharedPreferences is null")
+        sharedPreferences?.edit {
+            clear()
+            Log.d(TAG, "Session cleared successfully")
+        } ?: Log.w(TAG, "logout called but sharedPreferences is null")
     }
 
     val isLoggedIn: Boolean get() = _token != null

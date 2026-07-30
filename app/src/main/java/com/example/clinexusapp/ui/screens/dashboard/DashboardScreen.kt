@@ -1,57 +1,68 @@
 package com.example.clinexusapp.ui.screens.dashboard
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.EventNote
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.filled.Launch
+import androidx.compose.material.icons.filled.AutoFixHigh
+import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.clinexusapp.ui.components.*
+import com.example.clinexusapp.ui.components.DashboardSkeleton
+import com.example.clinexusapp.ui.components.NeumorphicCard
+import com.example.clinexusapp.ui.components.WavyTealHeader
 import com.example.clinexusapp.ui.navigation.Screen
-import com.example.clinexusapp.ui.theme.*
+import com.example.clinexusapp.ui.theme.DeepTeal
 import com.example.clinexusapp.util.Resource
 import com.example.clinexusapp.util.SessionManager
 import com.example.clinexusapp.viewmodel.DashboardViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.material.icons.automirrored.filled.EventNote
-import androidx.compose.material.icons.automirrored.filled.Launch
 
 data class DashboardArticle(val title: String, val category: String)
 
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel,
-    navController: NavController,
-    rootNavController: NavController
+    rootNavController: NavController,
 ) {
     var showInsightDialog by remember { mutableStateOf<DashboardArticle?>(null) }
-    val scope = rememberCoroutineScope()
     
     val user by SessionManager.currentUser.collectAsState()
     val firstName = user?.firstName ?: "Patient"
@@ -73,24 +84,24 @@ fun DashboardScreen(
                     text = article.title.uppercase(), 
                     color = MaterialTheme.colorScheme.primary, 
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
+                    fontSize = 18.sp,
                 ) 
             },
             text = { 
                 Text(
                     text = "Professional clinical data regarding ${article.category.lowercase()} is being synchronized. Stay tuned for expert health tips!",
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 ) 
             },
             containerColor = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(20.dp)
+            shape = RoundedCornerShape(20.dp),
         )
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
-        val isLoading = newsState is Resource.Loading || insightsState is Resource.Loading
+        val isLoading = (newsState is Resource.Loading) || (insightsState is Resource.Loading)
         
         if (isLoading) {
             DashboardSkeleton()
@@ -98,12 +109,12 @@ fun DashboardScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = padding.calculateBottomPadding())
+                    .padding(bottom = padding.calculateBottomPadding()),
             ) {
                 item {
                     WavyTealHeader(
                         title = "Hello, $firstName!",
-                        subtitle = "Welcome back!"
+                        subtitle = "Welcome back!",
                     )
                 }
 
@@ -114,20 +125,20 @@ fun DashboardScreen(
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(bottom = 12.dp)
+                            modifier = Modifier.padding(bottom = 12.dp),
                         )
                         NeumorphicCard(modifier = Modifier.fillMaxWidth()) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth(),
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Box(
                                         modifier = Modifier
                                             .size(54.dp)
                                             .background(Color(0xFFE0F7F4), RoundedCornerShape(14.dp)),
-                                        contentAlignment = Alignment.Center
+                                        contentAlignment = Alignment.Center,
                                     ) {
                                         Icon(Icons.AutoMirrored.Filled.EventNote, null, tint = DeepTeal, modifier = Modifier.size(26.dp))
                                     }
@@ -137,25 +148,25 @@ fun DashboardScreen(
                                             text = "Dental Cleaning", 
                                             fontWeight = FontWeight.Bold, 
                                             color = MaterialTheme.colorScheme.onSurface, 
-                                            fontSize = 17.sp
+                                            fontSize = 17.sp,
                                         )
                                         Text(
                                             text = "July 30, 2026 • 10:00 AM", 
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), 
-                                            fontSize = 13.sp
+                                            fontSize = 13.sp,
                                         )
                                     }
                                 }
                                 Box(
                                     modifier = Modifier.size(64.dp),
-                                    contentAlignment = Alignment.Center
+                                    contentAlignment = Alignment.Center,
                                 ) {
                                     CircularProgressIndicator(
                                         progress = { 0.75f },
                                         modifier = Modifier.fillMaxSize(),
                                         color = DeepTeal,
                                         strokeWidth = 4.dp,
-                                        trackColor = DeepTeal.copy(alpha = 0.1f)
+                                        trackColor = DeepTeal.copy(alpha = 0.1f),
                                     )
                                     Icon(Icons.Default.Schedule, null, tint = DeepTeal, modifier = Modifier.size(24.dp))
                                 }
@@ -165,14 +176,14 @@ fun DashboardScreen(
                                 onClick = { rootNavController.navigate(Screen.AppointmentHistory.route) },
                                 color = MaterialTheme.colorScheme.primary,
                                 shape = RoundedCornerShape(20.dp),
-                                modifier = Modifier.align(Alignment.End)
+                                modifier = Modifier.align(Alignment.End),
                             ) {
                                 Text(
                                     text = "View Details", 
                                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                                     fontSize = 13.sp, 
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimary
+                                    color = MaterialTheme.colorScheme.onPrimary,
                                 )
                             }
                         }
@@ -186,7 +197,7 @@ fun DashboardScreen(
                                 text = "Health Insights", 
                                 fontSize = 19.sp, 
                                 fontWeight = FontWeight.Bold, 
-                                color = MaterialTheme.colorScheme.onBackground
+                                color = MaterialTheme.colorScheme.onBackground,
                             )
                             Spacer(modifier = Modifier.width(10.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -197,8 +208,8 @@ fun DashboardScreen(
                                             .size(if (index == 0) 8.dp else 6.dp)
                                             .background(
                                                 if (index == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), 
-                                                CircleShape
-                                            )
+                                                CircleShape,
+                                            ),
                                     )
                                 }
                             }
@@ -206,7 +217,7 @@ fun DashboardScreen(
                         Spacer(modifier = Modifier.height(20.dp))
                         
                         val insights = (insightsState as? Resource.Success)?.data ?: emptyList()
-                        if (insights.isEmpty() && insightsState is Resource.Success) {
+                        if ((insights.isEmpty()) && (insightsState is Resource.Success)) {
                              Text("No insights available", modifier = Modifier.padding(8.dp))
                         } else {
                             Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
@@ -217,8 +228,7 @@ fun DashboardScreen(
                                         icon = Icons.Default.Lightbulb,
                                         color = MaterialTheme.colorScheme.primary,
                                         bgColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                        onClick = { showInsightDialog = DashboardArticle(insight.title, insight.category) }
-                                    )
+                                    ) { showInsightDialog = DashboardArticle(insight.title, insight.category) }
                                 }
                                 
                                 // Fallback if no data yet or to match your previous manual items
@@ -229,8 +239,7 @@ fun DashboardScreen(
                                         icon = Icons.Default.AutoFixHigh,
                                         color = Color(0xFFFF8A65),
                                         bgColor = Color(0xFFFFEAE3),
-                                        onClick = { showInsightDialog = DashboardArticle("Tips for a Brighter Smile", "Care") }
-                                    )
+                                    ) { showInsightDialog = DashboardArticle("Tips for a Brighter Smile", "Care") }
                                 }
                             }
                         }
@@ -242,14 +251,14 @@ fun DashboardScreen(
                         Row(
                             modifier = Modifier.fillMaxWidth(), 
                             horizontalArrangement = Arrangement.SpaceBetween, 
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = "Clinic News", 
                                     fontSize = 19.sp, 
                                     fontWeight = FontWeight.Bold, 
-                                    color = MaterialTheme.colorScheme.onBackground
+                                    color = MaterialTheme.colorScheme.onBackground,
                                 )
                                 Box(modifier = Modifier.padding(start = 8.dp).size(6.dp).background(MaterialTheme.colorScheme.secondary, CircleShape))
                             }
@@ -259,7 +268,7 @@ fun DashboardScreen(
                         }
                         
                         val newsList = (newsState as? Resource.Success)?.data ?: emptyList()
-                        if (newsList.isEmpty() && newsState is Resource.Success) {
+                        if ((newsList.isEmpty()) && (newsState is Resource.Success)) {
                              Text("No news currently", modifier = Modifier.padding(8.dp))
                         } else {
                             newsList.take(1).forEach { news ->
@@ -269,14 +278,14 @@ fun DashboardScreen(
                                             text = news.title,
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSurface,
-                                            fontSize = 16.sp
+                                            fontSize = 16.sp,
                                         )
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
                                             text = news.description,
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                             fontSize = 14.sp,
-                                            lineHeight = 20.sp
+                                            lineHeight = 20.sp,
                                         )
                                     }
                                 }
@@ -289,14 +298,14 @@ fun DashboardScreen(
                                             text = "Our Clinic is Expanding!",
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSurface,
-                                            fontSize = 16.sp
+                                            fontSize = 16.sp,
                                         )
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
                                             text = "Exciting new facilities coming soon to serve you better with the latest dental technology.",
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                             fontSize = 14.sp,
-                                            lineHeight = 20.sp
+                                            lineHeight = 20.sp,
                                         )
                                     }
                                 }
@@ -317,7 +326,7 @@ fun InsightItem(title: String, subtitle: String, icon: ImageVector, color: Color
                 modifier = Modifier
                     .size(54.dp)
                     .background(bgColor, RoundedCornerShape(14.dp)),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(icon, null, tint = color, modifier = Modifier.size(26.dp))
             }
@@ -327,20 +336,20 @@ fun InsightItem(title: String, subtitle: String, icon: ImageVector, color: Color
                     text = title, 
                     fontWeight = FontWeight.Bold, 
                     color = MaterialTheme.colorScheme.onSurface, 
-                    fontSize = 16.sp
+                    fontSize = 16.sp,
                 )
                 Text(
                     text = subtitle, 
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), 
                     fontSize = 13.sp, 
-                    maxLines = 1
+                    maxLines = 1,
                 )
             }
             Icon(
                 Icons.AutoMirrored.Filled.KeyboardArrowRight, 
                 null, 
                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f), 
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
         }
     }
