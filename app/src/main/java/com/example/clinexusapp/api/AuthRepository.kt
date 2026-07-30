@@ -69,4 +69,60 @@ class AuthRepository(private val apiService: ApiService) {
             Resource.Error(e.message ?: "An unexpected error occurred")
         }
     }
+
+    suspend fun updateAppointment(id: String, updates: Map<String, String>): Resource<Unit> {
+        return try {
+            val token = SessionManager.token ?: return Resource.Error("Not authenticated")
+            val response = apiService.updateAppointment(id, "Bearer $token", updates)
+            if (response.isSuccessful) {
+                Resource.Success(Unit)
+            } else {
+                Resource.Error(response.errorBody()?.string() ?: "Update failed")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "An unexpected error occurred")
+        }
+    }
+
+    suspend fun cancelAppointment(id: String): Resource<Unit> {
+        return try {
+            val token = SessionManager.token ?: return Resource.Error("Not authenticated")
+            val response = apiService.deleteAppointment(id, "Bearer $token")
+            if (response.isSuccessful) {
+                Resource.Success(Unit)
+            } else {
+                Resource.Error(response.errorBody()?.string() ?: "Cancellation failed")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "An unexpected error occurred")
+        }
+    }
+
+    suspend fun getClinicNews(): Resource<List<ClinicNewsDTO>> {
+        return try {
+            val token = SessionManager.token ?: return Resource.Error("Not authenticated")
+            val response = apiService.getClinicNews("Bearer $token")
+            if (response.isSuccessful && response.body() != null) {
+                Resource.Success(response.body()!!)
+            } else {
+                Resource.Error(response.errorBody()?.string() ?: "Failed to fetch news")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "An unexpected error occurred")
+        }
+    }
+
+    suspend fun getHealthInsights(): Resource<List<HealthInsightDTO>> {
+        return try {
+            val token = SessionManager.token ?: return Resource.Error("Not authenticated")
+            val response = apiService.getHealthInsights("Bearer $token")
+            if (response.isSuccessful && response.body() != null) {
+                Resource.Success(response.body()!!)
+            } else {
+                Resource.Error(response.errorBody()?.string() ?: "Failed to fetch insights")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "An unexpected error occurred")
+        }
+    }
 }

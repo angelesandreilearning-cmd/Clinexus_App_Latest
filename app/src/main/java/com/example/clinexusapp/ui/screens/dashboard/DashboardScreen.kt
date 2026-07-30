@@ -32,7 +32,9 @@ import androidx.navigation.NavController
 import com.example.clinexusapp.ui.components.*
 import com.example.clinexusapp.ui.navigation.Screen
 import com.example.clinexusapp.ui.theme.*
+import com.example.clinexusapp.util.Resource
 import com.example.clinexusapp.util.SessionManager
+import com.example.clinexusapp.viewmodel.DashboardViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -43,19 +45,19 @@ import androidx.compose.material.icons.automirrored.filled.Launch
 data class DashboardArticle(val title: String, val category: String)
 
 @Composable
-fun DashboardScreen(navController: NavController, rootNavController: NavController) {
+fun DashboardScreen(
+    viewModel: DashboardViewModel,
+    navController: NavController,
+    rootNavController: NavController
+) {
     var showInsightDialog by remember { mutableStateOf<DashboardArticle?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
     
     val user by SessionManager.currentUser.collectAsState()
     val firstName = user?.firstName ?: "Patient"
 
-    LaunchedEffect(Unit) {
-        delay(300)
-        isLoading = false
-    }
+    val newsState by viewModel.newsState.collectAsState()
+    val insightsState by viewModel.insightsState.collectAsState()
 
     if (showInsightDialog != null) {
         val article = showInsightDialog!!
@@ -88,6 +90,8 @@ fun DashboardScreen(navController: NavController, rootNavController: NavControll
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
+        val isLoading = newsState is Resource.Loading || insightsState is Resource.Loading
+        
         if (isLoading) {
             DashboardSkeleton()
         } else {
@@ -100,7 +104,6 @@ fun DashboardScreen(navController: NavController, rootNavController: NavControll
                     WavyTealHeader(
                         title = "Hello, $firstName!",
                         subtitle = "Welcome back!"
-                        // No back button or menu icon on Dashboard
                     )
                 }
 
@@ -123,10 +126,10 @@ fun DashboardScreen(navController: NavController, rootNavController: NavControll
                                     Box(
                                         modifier = Modifier
                                             .size(54.dp)
-                                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), RoundedCornerShape(14.dp)),
+                                            .background(Color(0xFFE0F7F4), RoundedCornerShape(14.dp)),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Icon(Icons.AutoMirrored.Filled.EventNote, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(26.dp))
+                                        Icon(Icons.AutoMirrored.Filled.EventNote, null, tint = DeepTeal, modifier = Modifier.size(26.dp))
                                     }
                                     Spacer(modifier = Modifier.width(18.dp))
                                     Column {
@@ -150,11 +153,11 @@ fun DashboardScreen(navController: NavController, rootNavController: NavControll
                                     CircularProgressIndicator(
                                         progress = { 0.75f },
                                         modifier = Modifier.fillMaxSize(),
-                                        color = MaterialTheme.colorScheme.primary,
+                                        color = DeepTeal,
                                         strokeWidth = 4.dp,
-                                        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                                        trackColor = DeepTeal.copy(alpha = 0.1f)
                                     )
-                                    Icon(Icons.Default.Schedule, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+                                    Icon(Icons.Default.Schedule, null, tint = DeepTeal, modifier = Modifier.size(24.dp))
                                 }
                             }
                             Spacer(modifier = Modifier.height(24.dp))
@@ -177,7 +180,7 @@ fun DashboardScreen(navController: NavController, rootNavController: NavControll
                 }
 
                 item {
-                    Column(modifier = Modifier.padding(horizontal = 24.dp).offset(y = (-5).dp)) {
+                    Column(modifier = Modifier.padding(horizontal = 24.dp).padding(top = 32.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = "Health Insights", 
@@ -201,23 +204,35 @@ fun DashboardScreen(navController: NavController, rootNavController: NavControll
                             }
                         }
                         Spacer(modifier = Modifier.height(20.dp))
-                        Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
-                            InsightItem(
-                                title = "Tips for a Brighter Smile",
-                                subtitle = "Essential dental care tips you should know",
-                                icon = Icons.Default.AutoFixHigh,
-                                color = Color(0xFFFF8A65),
-                                bgColor = Color(0xFFFFEAE3),
-                                onClick = { showInsightDialog = DashboardArticle("Tips for a Brighter Smile", "Care") }
-                            )
-                            InsightItem(
-                                title = "Stay Hydrated!",
-                                subtitle = "The benefits of drinking more water",
-                                icon = Icons.Default.WaterDrop,
-                                color = Color(0xFF0288D1),
-                                bgColor = Color(0xFFE1F5FE),
-                                onClick = { showInsightDialog = DashboardArticle("Stay Hydrated!", "Health") }
-                            )
+                        
+                        val insights = (insightsState as? Resource.Success)?.data ?: emptyList()
+                        if (insights.isEmpty() && insightsState is Resource.Success) {
+                             Text("No insights available", modifier = Modifier.padding(8.dp))
+                        } else {
+                            Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
+                                insights.take(2).forEach { insight ->
+                                    InsightItem(
+                                        title = insight.title,
+                                        subtitle = insight.description,
+                                        icon = Icons.Default.Lightbulb,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        bgColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                        onClick = { showInsightDialog = DashboardArticle(insight.title, insight.category) }
+                                    )
+                                }
+                                
+                                // Fallback if no data yet or to match your previous manual items
+                                if (insights.isEmpty()) {
+                                    InsightItem(
+                                        title = "Tips for a Brighter Smile",
+                                        subtitle = "Essential dental care tips you should know",
+                                        icon = Icons.Default.AutoFixHigh,
+                                        color = Color(0xFFFF8A65),
+                                        bgColor = Color(0xFFFFEAE3),
+                                        onClick = { showInsightDialog = DashboardArticle("Tips for a Brighter Smile", "Care") }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -242,21 +257,49 @@ fun DashboardScreen(navController: NavController, rootNavController: NavControll
                                 Icon(Icons.AutoMirrored.Filled.Launch, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp)) 
                             }
                         }
-                        NeumorphicCard(modifier = Modifier.fillMaxWidth()) {
-                            Column {
-                                Text(
-                                    text = "Our Clinic is Expanding!",
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontSize = 16.sp
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Exciting new facilities coming soon to serve you better with the latest dental technology.",
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                    fontSize = 14.sp,
-                                    lineHeight = 20.sp
-                                )
+                        
+                        val newsList = (newsState as? Resource.Success)?.data ?: emptyList()
+                        if (newsList.isEmpty() && newsState is Resource.Success) {
+                             Text("No news currently", modifier = Modifier.padding(8.dp))
+                        } else {
+                            newsList.take(1).forEach { news ->
+                                NeumorphicCard(modifier = Modifier.fillMaxWidth()) {
+                                    Column {
+                                        Text(
+                                            text = news.title,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            fontSize = 16.sp
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = news.description,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                            fontSize = 14.sp,
+                                            lineHeight = 20.sp
+                                        )
+                                    }
+                                }
+                            }
+                            
+                            if (newsList.isEmpty()) {
+                                NeumorphicCard(modifier = Modifier.fillMaxWidth()) {
+                                    Column {
+                                        Text(
+                                            text = "Our Clinic is Expanding!",
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            fontSize = 16.sp
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "Exciting new facilities coming soon to serve you better with the latest dental technology.",
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                            fontSize = 14.sp,
+                                            lineHeight = 20.sp
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

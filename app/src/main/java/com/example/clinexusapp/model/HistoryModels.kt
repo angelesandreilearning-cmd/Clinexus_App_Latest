@@ -16,3 +16,18 @@ data class ChatMessageDTO(
     val timestamp: Long,
     val isImage: Boolean = false
 )
+
+data class ClinicNewsDTO(
+    val id: String,
+    val title: String,
+    val description: String,
+    val date: String
+)
+
+data class HealthInsightDTO(
+    val id: String,
+    val title: String,
+    val description: String,
+    val category: String,
+    val iconEmoji: String
+)

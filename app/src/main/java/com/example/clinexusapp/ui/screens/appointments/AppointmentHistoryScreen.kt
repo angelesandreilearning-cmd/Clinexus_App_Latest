@@ -39,7 +39,6 @@ fun AppointmentHistoryScreen(
 ) {
     val historyState by viewModel.historyState.collectAsState()
     var selectedAppointment by remember { mutableStateOf<HistoryAppointment?>(null) }
-    var pendingApprovals by remember { mutableStateOf(setOf<String>()) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -56,7 +55,7 @@ fun AppointmentHistoryScreen(
             text = { Text("How would you like to manage this scheduled visit?") },
             confirmButton = {
                 TextButton(onClick = { 
-                    pendingApprovals = pendingApprovals + appt.id
+                    viewModel.rescheduleAppointment(appt.id, "Nov 1", "09:00 AM")
                     selectedAppointment = null
                     scope.launch { snackbarHostState.showSnackbar("RESCHEDULE: Pending Admin Approval") }
                 }) {
@@ -65,7 +64,7 @@ fun AppointmentHistoryScreen(
             },
             dismissButton = {
                 TextButton(onClick = { 
-                    pendingApprovals = pendingApprovals + appt.id
+                    viewModel.cancelAppointment(appt.id)
                     selectedAppointment = null
                     scope.launch { snackbarHostState.showSnackbar("CANCEL: Pending Admin Approval") }
                 }) {
@@ -119,7 +118,7 @@ fun AppointmentHistoryScreen(
                         }
                         
                         items(appointmentsList) { appointment ->
-                            val isPending = pendingApprovals.contains(appointment.id)
+                            val isPending = appointment.status.contains("Pending", ignoreCase = true)
                             NeumorphicCard(modifier = Modifier.fillMaxWidth().clickable { 
                                 selectedAppointment = HistoryAppointment(
                                     appointment.id,
@@ -158,7 +157,7 @@ fun AppointmentHistoryScreen(
                                                 modifier = Modifier.padding(top = 4.dp)
                                             ) {
                                                 Text(
-                                                    text = "PENDING ADMIN APPROVAL", 
+                                                    text = appointment.status.uppercase(), 
                                                     fontSize = 9.sp, 
                                                     fontWeight = FontWeight.Black,
                                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),

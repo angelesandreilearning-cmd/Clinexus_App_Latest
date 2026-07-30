@@ -24,4 +24,18 @@ class HistoryViewModel(private val repository: AuthRepository) : ViewModel() {
             _historyState.value = repository.getAppointmentHistory()
         }
     }
+
+    fun rescheduleAppointment(id: String, newDate: String, newTime: String) {
+        viewModelScope.launch {
+            repository.updateAppointment(id, mapOf("date" to newDate, "time" to newTime))
+            fetchHistory()
+        }
+    }
+
+    fun cancelAppointment(id: String) {
+        viewModelScope.launch {
+            repository.cancelAppointment(id)
+            fetchHistory()
+        }
+    }
 }

@@ -22,6 +22,10 @@ class ViewModelFactory(private val repository: AuthRepository) : ViewModelProvid
             @Suppress("UNCHECKED_CAST")
             return ChatViewModel(repository) as T
         }
+        if (modelClass.isAssignableFrom(DashboardViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return DashboardViewModel(repository) as T
+        }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

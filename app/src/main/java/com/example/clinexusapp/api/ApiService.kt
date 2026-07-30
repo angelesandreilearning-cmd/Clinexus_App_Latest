@@ -24,4 +24,27 @@ interface ApiService {
     suspend fun getChatMessages(
         @Header("Authorization") token: String
     ): Response<List<ChatMessageDTO>>
+
+    @PUT("api/appointments/{id}")
+    suspend fun updateAppointment(
+        @Path("id") id: String,
+        @Header("Authorization") token: String,
+        @Body body: Map<String, String>
+    ): Response<Unit>
+
+    @DELETE("api/appointments/{id}")
+    suspend fun deleteAppointment(
+        @Path("id") id: String,
+        @Header("Authorization") token: String
+    ): Response<Unit>
+
+    @GET("api/clinic-news")
+    suspend fun getClinicNews(
+        @Header("Authorization") token: String
+    ): Response<List<ClinicNewsDTO>>
+
+    @GET("api/health-insights")
+    suspend fun getHealthInsights(
+        @Header("Authorization") token: String
+    ): Response<List<HealthInsightDTO>>
 }

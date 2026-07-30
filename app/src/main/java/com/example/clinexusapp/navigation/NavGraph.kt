@@ -17,6 +17,7 @@ import com.example.clinexusapp.ui.screens.appointments.AppointmentHistoryScreen
 import com.example.clinexusapp.ui.screens.chat.ChatScreen
 import com.example.clinexusapp.ui.screens.notifications.NotificationScreen
 import com.example.clinexusapp.ui.screens.settings.SettingsScreen
+import com.example.clinexusapp.util.SessionManager
 import com.example.clinexusapp.viewmodel.*
 
 @Composable
@@ -141,6 +142,7 @@ fun SetupNavGraph(navController: NavHostController, settingsViewModel: SettingsV
             SettingsScreen(
                 onBack = { navController.popBackStack() },
                 onLogout = {
+                    SessionManager.logout()
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
                     }

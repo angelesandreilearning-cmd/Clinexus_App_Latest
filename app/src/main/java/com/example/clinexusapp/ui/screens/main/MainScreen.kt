@@ -51,7 +51,8 @@ fun MainScreen(rootNavController: NavHostController, settingsViewModel: Settings
             modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
         ) {
             composable(route = Screen.Dashboard.route) {
-                DashboardScreen(navController, rootNavController)
+                val dashboardViewModel: DashboardViewModel = viewModel(factory = factory)
+                DashboardScreen(dashboardViewModel, navController, rootNavController)
             }
             composable(route = Screen.DoctorList.route) {
                 DoctorListScreen(

@@ -7,8 +7,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
-    // Railway Backend URL (Update this with your actual Railway URL)
-    private const val BASE_URL = "https://clinexus-api.up.railway.app/"
+    // Render Backend URL (Handles logic and DB queries)
+    private const val BASE_URL = "https://clinexus-web-development.onrender.com/"
 
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
