@@ -1,14 +1,22 @@
 package com.example.clinexusapp.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.clinexusapp.api.AuthRepository
 import com.example.clinexusapp.data.model.Booking
 import com.example.clinexusapp.data.model.DentalService
 import com.example.clinexusapp.data.model.TimeSlot
+import com.example.clinexusapp.model.CreateAppointmentResponse
+import com.example.clinexusapp.util.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.util.*
 
-class BookingViewModel : ViewModel() {
+class BookingViewModel(private val repository: AuthRepository) : ViewModel() {
+
+    private val _bookingState = MutableStateFlow<Resource<CreateAppointmentResponse>?>(null)
+    val bookingState = _bookingState.asStateFlow()
 
     private val _services = MutableStateFlow(listOf(
         DentalService("1", "Consultation", 30, "$50", emoji = "⚕️"),
@@ -104,5 +112,16 @@ class BookingViewModel : ViewModel() {
         val endMin = totalMinutes % 60
         
         return formatTime(endHour, endMin)
+    }
+
+    fun createAppointment(serviceId: String, doctorName: String, date: String, time: String) {
+        viewModelScope.launch {
+            _bookingState.value = Resource.Loading()
+            _bookingState.value = repository.createAppointment(serviceId, doctorName, date, time)
+        }
+    }
+
+    fun resetState() {
+        _bookingState.value = null
     }
 }

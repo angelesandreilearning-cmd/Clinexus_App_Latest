@@ -15,6 +15,27 @@ interface ApiService {
         @Body request: RegisterRequest
     ): Response<RegisterResponse>
 
+    @POST("api/verify-otp")
+    suspend fun verifyOtp(
+        @Body request: VerifyOtpRequest
+    ): Response<GenericResponse>
+
+    @POST("api/forgot-password")
+    suspend fun forgotPassword(
+        @Body request: ForgotPasswordRequest
+    ): Response<GenericResponse>
+
+    @POST("api/reset-password")
+    suspend fun resetPassword(
+        @Body request: ResetPasswordRequest
+    ): Response<GenericResponse>
+
+    @POST("api/appointments")
+    suspend fun createAppointment(
+        @Header("Authorization") token: String,
+        @Body request: CreateAppointmentRequest
+    ): Response<CreateAppointmentResponse>
+
     @GET("api/patient-history")
     suspend fun getAppointmentHistory(
         @Header("Authorization") token: String

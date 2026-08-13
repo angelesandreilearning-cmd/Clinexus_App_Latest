@@ -2,9 +2,13 @@ package com.example.clinexusapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.clinexusapp.api.AddressRepository
 import com.example.clinexusapp.api.AuthRepository
 
-class ViewModelFactory(private val repository: AuthRepository) : ViewModelProvider.Factory {
+class ViewModelFactory(
+    private val repository: AuthRepository,
+    private val addressRepository: AddressRepository? = null
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
@@ -12,7 +16,15 @@ class ViewModelFactory(private val repository: AuthRepository) : ViewModelProvid
         }
         if (modelClass.isAssignableFrom(RegisterViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return RegisterViewModel(repository) as T
+            return RegisterViewModel(repository, addressRepository!!) as T
+        }
+        if (modelClass.isAssignableFrom(OTPViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return OTPViewModel(repository) as T
+        }
+        if (modelClass.isAssignableFrom(BookingViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return BookingViewModel(repository) as T
         }
         if (modelClass.isAssignableFrom(HistoryViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")

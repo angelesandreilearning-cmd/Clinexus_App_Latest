@@ -14,15 +14,30 @@ import androidx.compose.ui.unit.sp
 import com.example.clinexusapp.ui.components.ElegantTextField
 import com.example.clinexusapp.ui.components.ElegantButton
 import com.example.clinexusapp.ui.components.ElegantCard
+import com.example.clinexusapp.util.Resource
+import com.example.clinexusapp.viewmodel.OTPViewModel
 
 @Composable
 fun ForgotPasswordScreen(
-    onSendResetLink: () -> Unit,
+    viewModel: OTPViewModel,
+    onNavigateToReset: (String) -> Unit,
     onNavigateBack: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
+    val otpState by viewModel.otpState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(otpState) {
+        if (otpState is Resource.Success) {
+            onNavigateToReset(email)
+            viewModel.resetState()
+        } else if (otpState is Resource.Error) {
+            snackbarHostState.showSnackbar(otpState?.message ?: "Request failed")
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
@@ -42,7 +57,7 @@ fun ForgotPasswordScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Enter your email to receive a\nsecure link for password reset.",
+                text = "Enter your email to receive a\nsecure code for password reset.",
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center,
@@ -62,8 +77,9 @@ fun ForgotPasswordScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             ElegantButton(
-                text = "Send Link",
-                onClick = onSendResetLink
+                text = if (otpState is Resource.Loading) "Processing..." else "Send Code",
+                onClick = { viewModel.forgotPassword(email) },
+                enabled = email.isNotEmpty() && otpState !is Resource.Loading
             )
 
             Spacer(modifier = Modifier.height(24.dp))

@@ -42,6 +42,63 @@ class AuthRepository(private val apiService: ApiService) {
         }
     }
 
+    suspend fun verifyOtp(email: String, otp: String): Resource<GenericResponse> {
+        return try {
+            val request = VerifyOtpRequest(email, otp)
+            val response = apiService.verifyOtp(request)
+            if (response.isSuccessful && (response.body() != null)) {
+                Resource.Success(response.body()!!)
+            } else {
+                Resource.Error(response.errorBody()?.string() ?: "OTP verification failed")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "An unexpected error occurred")
+        }
+    }
+
+    suspend fun forgotPassword(email: String): Resource<GenericResponse> {
+        return try {
+            val request = ForgotPasswordRequest(email)
+            val response = apiService.forgotPassword(request)
+            if (response.isSuccessful && (response.body() != null)) {
+                Resource.Success(response.body()!!)
+            } else {
+                Resource.Error(response.errorBody()?.string() ?: "Password reset request failed")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "An unexpected error occurred")
+        }
+    }
+
+    suspend fun resetPassword(email: String, otp: String, newPassword: String): Resource<GenericResponse> {
+        return try {
+            val request = ResetPasswordRequest(email, otp, newPassword)
+            val response = apiService.resetPassword(request)
+            if (response.isSuccessful && (response.body() != null)) {
+                Resource.Success(response.body()!!)
+            } else {
+                Resource.Error(response.errorBody()?.string() ?: "Password reset failed")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "An unexpected error occurred")
+        }
+    }
+
+    suspend fun createAppointment(serviceId: String, doctorName: String, date: String, time: String): Resource<CreateAppointmentResponse> {
+        return try {
+            val token = SessionManager.token ?: return Resource.Error("Not authenticated")
+            val request = CreateAppointmentRequest(serviceId, doctorName, date, time)
+            val response = apiService.createAppointment("Bearer $token", request)
+            if (response.isSuccessful && (response.body() != null)) {
+                Resource.Success(response.body()!!)
+            } else {
+                Resource.Error(response.errorBody()?.string() ?: "Failed to create appointment")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "An unexpected error occurred")
+        }
+    }
+
     suspend fun getAppointmentHistory(): Resource<List<AppointmentDTO>> {
         return try {
             val token = SessionManager.token ?: return Resource.Error("Not authenticated")

@@ -15,16 +15,30 @@ import androidx.compose.ui.unit.sp
 import com.example.clinexusapp.ui.components.ElegantTextField
 import com.example.clinexusapp.ui.components.ElegantButton
 import com.example.clinexusapp.ui.components.ElegantCard
+import com.example.clinexusapp.util.Resource
+import com.example.clinexusapp.viewmodel.OTPViewModel
 
 @Composable
 fun OTPVerificationScreen(
-    phoneNumber: String = "+1 234 567 8900",
-    onVerifySuccess: () -> Unit,
-    onResendOTP: () -> Unit
+    email: String,
+    viewModel: OTPViewModel,
+    onVerifySuccess: () -> Unit
 ) {
     var otpCode by remember { mutableStateOf("") }
+    val otpState by viewModel.otpState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(otpState) {
+        if (otpState is Resource.Success) {
+            onVerifySuccess()
+            viewModel.resetState()
+        } else if (otpState is Resource.Error) {
+            snackbarHostState.showSnackbar(otpState?.message ?: "Verification failed")
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
@@ -44,7 +58,7 @@ fun OTPVerificationScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Enter the secure code sent to\n$phoneNumber",
+                text = "Enter the secure code sent to\n$email",
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center,
@@ -64,15 +78,16 @@ fun OTPVerificationScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             ElegantButton(
-                text = "Verify Code",
-                onClick = onVerifySuccess
+                text = if (otpState is Resource.Loading) "Verifying..." else "Verify Code",
+                onClick = { viewModel.verifyOtp(email, otpCode) },
+                enabled = otpCode.length >= 4 && otpState !is Resource.Loading
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "Code not received? ", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                TextButton(onClick = onResendOTP) {
+                TextButton(onClick = { viewModel.resendOtp(email) }) {
                     Text(
                         text = "Resend", 
                         color = MaterialTheme.colorScheme.primary, 

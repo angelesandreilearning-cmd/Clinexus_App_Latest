@@ -5,8 +5,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.example.clinexusapp.api.AddressRepository
 import com.example.clinexusapp.api.AuthRepository
 import com.example.clinexusapp.api.RetrofitClient
 import com.example.clinexusapp.ui.navigation.Screen
@@ -23,7 +26,8 @@ import com.example.clinexusapp.viewmodel.*
 @Composable
 fun SetupNavGraph(navController: NavHostController, settingsViewModel: SettingsViewModel) {
     val repository = AuthRepository(RetrofitClient.instance)
-    val factory = ViewModelFactory(repository)
+    val addressRepository = AddressRepository(RetrofitClient.addressInstance)
+    val factory = ViewModelFactory(repository, addressRepository)
 
     NavHost(
         navController = navController,
@@ -77,31 +81,55 @@ fun SetupNavGraph(navController: NavHostController, settingsViewModel: SettingsV
             val registerViewModel: RegisterViewModel = viewModel(factory = factory)
             RegisterScreen(
                 viewModel = registerViewModel,
+                onRegisterSuccess = { email ->
+                    navController.navigate(Screen.OTP.createRoute(email))
+                },
                 onNavigateToLogin = {
                     navController.popBackStack()
-                },
-                onRegisterSuccess = {
-                    navController.navigate(Screen.OTP.route)
                 }
             )
         }
-        composable(route = Screen.OTP.route) {
+        composable(
+            route = Screen.OTP.route,
+            arguments = listOf(navArgument("email") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email") ?: ""
+            val otpViewModel: OTPViewModel = viewModel(factory = factory)
             OTPVerificationScreen(
+                email = email,
+                viewModel = otpViewModel,
                 onVerifySuccess = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
-                },
-                onResendOTP = { /* Simulated */ }
+                }
             )
         }
         composable(route = Screen.ForgotPassword.route) {
+            val otpViewModel: OTPViewModel = viewModel(factory = factory)
             ForgotPasswordScreen(
-                onSendResetLink = {
-                    navController.popBackStack()
+                viewModel = otpViewModel,
+                onNavigateToReset = { email ->
+                    navController.navigate(Screen.ResetPassword.createRoute(email))
                 },
                 onNavigateBack = {
                     navController.popBackStack()
+                }
+            )
+        }
+        composable(
+            route = Screen.ResetPassword.route,
+            arguments = listOf(navArgument("email") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email") ?: ""
+            val otpViewModel: OTPViewModel = viewModel(factory = factory)
+            ResetPasswordScreen(
+                email = email,
+                viewModel = otpViewModel,
+                onResetSuccess = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.ForgotPassword.route) { inclusive = true }
+                    }
                 }
             )
         }
@@ -109,13 +137,15 @@ fun SetupNavGraph(navController: NavHostController, settingsViewModel: SettingsV
             MainScreen(rootNavController = navController, settingsViewModel = settingsViewModel)
         }
         composable(route = Screen.AppointmentBooking.route) {
+            val bookingViewModel: BookingViewModel = viewModel(factory = factory)
             AppointmentBookingScreen(
                 onBack = { navController.popBackStack() },
                 onBookSuccess = {
                     navController.navigate(Screen.Dashboard.route) {
                         popUpTo(Screen.Dashboard.route) { inclusive = true }
                     }
-                }
+                },
+                viewModel = bookingViewModel
             )
         }
         composable(route = Screen.AppointmentHistory.route) {

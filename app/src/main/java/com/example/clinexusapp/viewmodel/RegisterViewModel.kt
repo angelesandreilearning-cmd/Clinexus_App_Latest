@@ -2,21 +2,83 @@ package com.example.clinexusapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.clinexusapp.api.AddressRepository
 import com.example.clinexusapp.api.AuthRepository
-import com.example.clinexusapp.model.RegisterRequest
-import com.example.clinexusapp.model.RegisterResponse
+import com.example.clinexusapp.model.*
 import com.example.clinexusapp.util.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class RegisterViewModel(private val repository: AuthRepository) : ViewModel() {
+class RegisterViewModel(
+    private val repository: AuthRepository,
+    private val addressRepository: AddressRepository
+) : ViewModel() {
 
     private val _registerState = MutableStateFlow<Resource<RegisterResponse>?>(null)
     val registerState = _registerState.asStateFlow()
 
     private val _validationError = MutableStateFlow<String?>(null)
     val validationError = _validationError.asStateFlow()
+
+    // Address State
+    private val _regions = MutableStateFlow<List<Region>>(emptyList())
+    val regions = _regions.asStateFlow()
+
+    private val _provinces = MutableStateFlow<List<Province>>(emptyList())
+    val provinces = _provinces.asStateFlow()
+
+    private val _cities = MutableStateFlow<List<City>>(emptyList())
+    val cities = _cities.asStateFlow()
+
+    private val _barangays = MutableStateFlow<List<Barangay>>(emptyList())
+    val barangays = _barangays.asStateFlow()
+
+    init {
+        loadRegions()
+    }
+
+    private fun loadRegions() {
+        viewModelScope.launch {
+            val result = addressRepository.getRegions()
+            if (result is Resource.Success) {
+                _regions.value = result.data ?: emptyList()
+            }
+        }
+    }
+
+    fun onRegionSelected(regionCode: String) {
+        _provinces.value = emptyList()
+        _cities.value = emptyList()
+        _barangays.value = emptyList()
+        viewModelScope.launch {
+            val result = addressRepository.getProvinces(regionCode)
+            if (result is Resource.Success) {
+                _provinces.value = result.data ?: emptyList()
+            }
+        }
+    }
+
+    fun onProvinceSelected(provinceCode: String) {
+        _cities.value = emptyList()
+        _barangays.value = emptyList()
+        viewModelScope.launch {
+            val result = addressRepository.getCities(provinceCode)
+            if (result is Resource.Success) {
+                _cities.value = result.data ?: emptyList()
+            }
+        }
+    }
+
+    fun onCitySelected(cityCode: String) {
+        _barangays.value = emptyList()
+        viewModelScope.launch {
+            val result = addressRepository.getBarangays(cityCode)
+            if (result is Resource.Success) {
+                _barangays.value = result.data ?: emptyList()
+            }
+        }
+    }
 
     fun register(
         email: String,
@@ -27,10 +89,14 @@ class RegisterViewModel(private val repository: AuthRepository) : ViewModel() {
         lastName: String,
         phoneNumber: String,
         dateOfBirth: String,
-        sex: String
+        streetAddress: String,
+        province: String,
+        city: String,
+        barangay: String
     ) {
         if (firstName.isEmpty() || lastName.isEmpty() || email.isEmpty() || 
-            password.isEmpty() || phoneNumber.isEmpty() || dateOfBirth.isEmpty()
+            password.isEmpty() || phoneNumber.isEmpty() || dateOfBirth.isEmpty() ||
+            streetAddress.isEmpty() || province.isEmpty() || city.isEmpty() || barangay.isEmpty()
         ) {
             _validationError.value = "Please fill in all required fields"
             return
@@ -55,7 +121,8 @@ class RegisterViewModel(private val repository: AuthRepository) : ViewModel() {
         viewModelScope.launch {
             _registerState.value = Resource.Loading()
             val request = RegisterRequest(
-                email, password, firstName, middleName, lastName, phoneNumber, dateOfBirth, sex
+                email, password, firstName, middleName, lastName, phoneNumber, dateOfBirth,
+                streetAddress, province, city, barangay
             )
             _registerState.value = repository.register(request)
         }

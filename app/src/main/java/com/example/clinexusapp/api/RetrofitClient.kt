@@ -30,4 +30,14 @@ object RetrofitClient {
 
         retrofit.create(ApiService::class.java)
     }
+
+    val addressInstance: AddressApiService by lazy {
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://psgc.gitlab.io/api/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(client)
+            .build()
+
+        retrofit.create(AddressApiService::class.java)
+    }
 }

@@ -38,6 +38,7 @@ import com.example.clinexusapp.data.model.TimeSlot
 import com.example.clinexusapp.ui.components.*
 import com.example.clinexusapp.ui.theme.*
 import com.example.clinexusapp.util.NotificationHelper
+import com.example.clinexusapp.util.Resource
 import com.example.clinexusapp.viewmodel.BookingViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -58,6 +59,15 @@ fun AppointmentBookingScreen(
     val services by viewModel.services.collectAsState()
     val selectedService by viewModel.selectedService.collectAsState()
     val timeSlots by viewModel.timeSlots.collectAsState()
+    val bookingState by viewModel.bookingState.collectAsState()
+
+    LaunchedEffect(bookingState) {
+        if (bookingState is Resource.Success) {
+            NotificationHelper.showBookingNotification(context, "Dr. Olivia Bennett")
+            isBookingConfirmed = true
+            viewModel.resetState()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -163,11 +173,16 @@ fun AppointmentBookingScreen(
                         }
                         
                         VibrantButton(
-                            text = "Authorize Booking",
+                            text = if (bookingState is Resource.Loading) "Processing..." else "Authorize Booking",
                             onClick = {
-                                NotificationHelper.showBookingNotification(context, "Dr. Olivia Bennett")
-                                isBookingConfirmed = true
-                            }
+                                viewModel.createAppointment(
+                                    serviceId = selectedService?.id ?: "",
+                                    doctorName = "Dr. Olivia Bennett",
+                                    date = selectedDate,
+                                    time = selectedTime?.time ?: ""
+                                )
+                            },
+                            enabled = bookingState !is Resource.Loading
                         )
                     }
                 }
