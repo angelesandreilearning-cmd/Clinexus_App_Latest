@@ -57,7 +57,7 @@ fun MainScreen(rootNavController: NavHostController, settingsViewModel: Settings
             composable(route = Screen.DoctorList.route) {
                 DoctorListScreen(
                     onDoctorClick = { name ->
-                        rootNavController.navigate(Screen.AppointmentBooking.route)
+                        rootNavController.navigate(Screen.AppointmentBooking.createRoute(name))
                     }
                 )
             }

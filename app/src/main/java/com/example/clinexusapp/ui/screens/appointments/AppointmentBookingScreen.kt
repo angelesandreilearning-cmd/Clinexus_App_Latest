@@ -42,17 +42,35 @@ import com.example.clinexusapp.util.Resource
 import com.example.clinexusapp.viewmodel.BookingViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.UUID
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppointmentBookingScreen(
+    doctorName: String,
     onBack: () -> Unit,
     onBookSuccess: () -> Unit,
     viewModel: BookingViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    var selectedDate by remember { mutableStateOf("Oct 24") }
+    
+    // Generate dynamic dates (Next 7 days)
+    val dynamicDates = remember {
+        val calendar = Calendar.getInstance()
+        val format = SimpleDateFormat("MMM d", Locale.getDefault())
+        val dayFormat = SimpleDateFormat("EEE", Locale.getDefault())
+        List(7) {
+            val date = calendar.time
+            val label = "${dayFormat.format(date)} ${format.format(date).split(" ").last()}"
+            val fullValue = format.format(date)
+            calendar.add(Calendar.DAY_OF_YEAR, 1)
+            label to fullValue
+        }
+    }
+
+    var selectedDate by remember { mutableStateOf(dynamicDates.first().second) }
+    var selectedDateLabel by remember { mutableStateOf(dynamicDates.first().first) }
     var selectedTime by remember { mutableStateOf<TimeSlot?>(null) }
     var isBookingConfirmed by remember { mutableStateOf(false) }
     
@@ -63,7 +81,7 @@ fun AppointmentBookingScreen(
 
     LaunchedEffect(bookingState) {
         if (bookingState is Resource.Success) {
-            NotificationHelper.showBookingNotification(context, "Dr. Olivia Bennett")
+            NotificationHelper.showBookingNotification(context, doctorName)
             isBookingConfirmed = true
             viewModel.resetState()
         }
@@ -90,7 +108,7 @@ fun AppointmentBookingScreen(
                 
                 // Doctor Summary
                 Box(modifier = Modifier.padding(horizontal = 24.dp)) {
-                    ElegantDoctorSummary("Dr. Olivia Bennett")
+                    ElegantDoctorSummary(doctorName)
                 }
                 
                 // Step 1: Services
@@ -118,8 +136,45 @@ fun AppointmentBookingScreen(
                 // Step 2: Date
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     BookingSectionHeader("2. Select Date", Icons.Default.Event)
-                    BookingDateSelector(selectedDate) { 
-                        if (!isBookingConfirmed) selectedDate = it 
+                    
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(horizontal = 24.dp)
+                    ) {
+                        items(dynamicDates) { datePair ->
+                            val isSelected = selectedDateLabel == datePair.first
+                            Surface(
+                                onClick = { 
+                                    if (!isBookingConfirmed) {
+                                        selectedDateLabel = datePair.first
+                                        selectedDate = datePair.second
+                                    }
+                                },
+                                modifier = Modifier.width(80.dp),
+                                shape = RoundedCornerShape(18.dp),
+                                color = if (isSelected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surface,
+                                shadowElevation = if (isSelected) 4.dp else 1.dp,
+                                border = if (!isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)) else null
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(vertical = 14.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = datePair.first.split(" ").first().uppercase(), 
+                                        color = if (isSelected) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), 
+                                        fontSize = 11.sp, 
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = datePair.first.split(" ").last(), 
+                                        color = if (isSelected) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurface, 
+                                        fontSize = 20.sp, 
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
                 
@@ -177,7 +232,7 @@ fun AppointmentBookingScreen(
                             onClick = {
                                 viewModel.createAppointment(
                                     serviceId = selectedService?.id ?: "",
-                                    doctorName = "Dr. Olivia Bennett",
+                                    doctorName = doctorName,
                                     date = selectedDate,
                                     time = selectedTime?.time ?: ""
                                 )
@@ -191,7 +246,7 @@ fun AppointmentBookingScreen(
             // Success Overlay
             if (isBookingConfirmed) {
                 BookingSuccessOverlay(
-                    doctorName = "Dr. Olivia Bennett",
+                    doctorName = doctorName,
                     date = selectedDate,
                     time = selectedTime?.time ?: "",
                     onDone = onBookSuccess
@@ -253,42 +308,7 @@ fun BookingServiceItem(service: DentalService, isSelected: Boolean, onClick: () 
 
 @Composable
 fun BookingDateSelector(selected: String, onSelect: (String) -> Unit) {
-    val dates = listOf("Mon 24", "Tue 25", "Wed 26", "Thu 27", "Fri 28")
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(horizontal = 24.dp)
-    ) {
-        items(dates) { date ->
-            val fullDate = "Oct ${date.split(" ").last()}"
-            val isSelected = selected == fullDate
-            Surface(
-                onClick = { onSelect(fullDate) },
-                modifier = Modifier.width(80.dp),
-                shape = RoundedCornerShape(18.dp),
-                color = if (isSelected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surface,
-                shadowElevation = if (isSelected) 4.dp else 1.dp,
-                border = if (!isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)) else null
-            ) {
-                Column(
-                    modifier = Modifier.padding(vertical = 14.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = date.split(" ").first().uppercase(), 
-                        color = if (isSelected) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), 
-                        fontSize = 11.sp, 
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = date.split(" ").last(), 
-                        color = if (isSelected) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurface, 
-                        fontSize = 20.sp, 
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        }
-    }
+    // This is no longer used, kept for reference or can be deleted
 }
 
 @Composable

@@ -18,7 +18,9 @@ sealed class Screen(val route: String) {
     object Home : Screen("home")
     object Dashboard : Screen("dashboard")
     object DoctorList : Screen("doctor_list")
-    object AppointmentBooking : Screen("appointment_booking")
+    object AppointmentBooking : Screen("appointment_booking?doctorName={doctorName}") {
+        fun createRoute(doctorName: String) = "appointment_booking?doctorName=$doctorName"
+    }
     object AppointmentHistory : Screen("appointment_history")
     object Chat : Screen("chat")
     object Notifications : Screen("notifications")

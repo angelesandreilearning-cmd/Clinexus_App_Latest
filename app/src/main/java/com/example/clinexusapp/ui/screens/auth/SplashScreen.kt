@@ -26,8 +26,9 @@ fun SplashScreen(
 ) {
     val scale = remember { Animatable(0.8f) }
     val alpha = remember { Animatable(0f) }
+    val isSessionReady by SessionManager.isInitialized.collectAsState()
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(isSessionReady) {
         launch {
             scale.animateTo(
                 targetValue = 1f,
@@ -40,11 +41,14 @@ fun SplashScreen(
                 animationSpec = tween(durationMillis = 1000)
             )
         }
-        delay(2500)
-        if (SessionManager.isLoggedIn) {
-            onNavigateToHome()
-        } else {
-            onNavigateToOnboarding()
+        
+        if (isSessionReady) {
+            delay(1500) // Minimum display time
+            if (SessionManager.isLoggedIn) {
+                onNavigateToHome()
+            } else {
+                onNavigateToOnboarding()
+            }
         }
     }
 

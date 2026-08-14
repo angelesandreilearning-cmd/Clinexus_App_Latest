@@ -40,7 +40,15 @@ fun ProfileScreen(
     val user by SessionManager.currentUser.collectAsState()
     val updateState by viewModel.updateState.collectAsState()
     
-    val defaultName = if (user?.firstName != null) "${user!!.firstName} ${user!!.lastName}" else "Patient"
+    // Auto-fetch if names are missing
+    LaunchedEffect(user) {
+        if (user != null && user?.firstName == null) {
+            viewModel.fetchProfile()
+        }
+    }
+
+    val displayFirstName = if (!user?.firstName.isNullOrBlank()) user!!.firstName!! else "Patient"
+    val displayLastName = user?.lastName ?: ""
     val defaultEmail = user?.email ?: "Not available"
 
     var isEditing by remember { mutableStateOf(false) }
@@ -52,7 +60,7 @@ fun ProfileScreen(
         if (!isEditing) {
             firstName = user?.firstName ?: ""
             lastName = user?.lastName ?: ""
-            email = defaultEmail
+            email = user?.email ?: ""
         }
     }
     
@@ -111,8 +119,8 @@ fun ProfileScreen(
                         MintTextField(value = lastName, onValueChange = { lastName = it }, label = "Last Name", icon = Icons.Default.Badge)
                     } else {
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                            Text(text = if (firstName.isNotEmpty()) "$firstName $lastName" else "Set your name", fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onBackground)
-                            Text(text = email, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                            Text(text = if (displayFirstName != "Patient") "$displayFirstName $displayLastName" else displayFirstName, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onBackground)
+                            Text(text = defaultEmail, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                             Spacer(modifier = Modifier.height(12.dp))
                             Row(
                                 modifier = Modifier

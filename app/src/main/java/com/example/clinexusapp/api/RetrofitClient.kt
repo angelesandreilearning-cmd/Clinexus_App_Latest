@@ -11,7 +11,7 @@ object RetrofitClient {
     private const val BASE_URL = "https://clinexus-web-development.onrender.com/"
 
     private val logging = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY
+        level = HttpLoggingInterceptor.Level.HEADERS // Avoid logging large BODY to prevent Binder buffer overflow
     }
 
     private val client = OkHttpClient.Builder()

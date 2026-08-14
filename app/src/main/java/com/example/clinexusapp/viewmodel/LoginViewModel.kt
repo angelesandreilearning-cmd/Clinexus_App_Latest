@@ -24,6 +24,12 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
             
             if (result is Resource.Success && (result.data?.token != null) && (result.data.patient != null)) {
                 SessionManager.saveSession(result.data.token, result.data.patient)
+                
+                // Fetch full profile immediately to get first/last name
+                val profileResult = repository.getPatientProfile()
+                if (profileResult is Resource.Success && profileResult.data != null) {
+                    SessionManager.updateProfile(profileResult.data)
+                }
             }
             
             _loginState.value = result
