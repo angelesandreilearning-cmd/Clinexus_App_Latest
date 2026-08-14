@@ -25,17 +25,44 @@ import androidx.compose.ui.unit.sp
 import com.example.clinexusapp.ui.components.*
 import com.example.clinexusapp.ui.theme.*
 import com.example.clinexusapp.util.SessionManager
+import com.example.clinexusapp.viewmodel.ProfileViewModel
+import com.example.clinexusapp.util.Resource
 import kotlinx.coroutines.launch
 
 @Composable
-fun ProfileScreen(onLogout: () -> Unit, onBack: () -> Unit, onNavigateToSettings: () -> Unit) {
+fun ProfileScreen(
+    onLogout: () -> Unit, 
+    onBack: () -> Unit, 
+    onNavigateToSettings: () -> Unit,
+    onNavigateToPersonalInformation: () -> Unit,
+    viewModel: ProfileViewModel
+) {
     val user by SessionManager.currentUser.collectAsState()
-    val patientName = user?.firstName ?: "Ashley Torres"
-    val patientEmail = user?.email ?: "ashley@example.com"
+    val updateState by viewModel.updateState.collectAsState()
+    
+    val defaultName = if (user?.firstName != null) "${user!!.firstName} ${user!!.lastName}" else "Patient"
+    val defaultEmail = user?.email ?: "Not available"
 
     var isEditing by remember { mutableStateOf(false) }
-    var name by remember { mutableStateOf(patientName) }
-    var email by remember { mutableStateOf(patientEmail) }
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    
+    LaunchedEffect(user) {
+        if (!isEditing) {
+            firstName = user?.firstName ?: ""
+            lastName = user?.lastName ?: ""
+            email = defaultEmail
+        }
+    }
+    
+    LaunchedEffect(updateState) {
+        if (updateState is Resource.Success) {
+            isEditing = false
+            viewModel.resetState()
+        }
+    }
+
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -79,12 +106,12 @@ fun ProfileScreen(onLogout: () -> Unit, onBack: () -> Unit, onNavigateToSettings
                 
                 NeumorphicCard(modifier = Modifier.fillMaxWidth()) {
                     if (isEditing) {
-                        MintTextField(value = name, onValueChange = { name = it }, label = "Full Name", icon = Icons.Default.Badge)
+                        MintTextField(value = firstName, onValueChange = { firstName = it }, label = "First Name", icon = Icons.Default.Badge)
                         Spacer(modifier = Modifier.height(16.dp))
-                        MintTextField(value = email, onValueChange = { email = it }, label = "Email Address", icon = Icons.Default.Email)
+                        MintTextField(value = lastName, onValueChange = { lastName = it }, label = "Last Name", icon = Icons.Default.Badge)
                     } else {
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                            Text(text = name, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onBackground)
+                            Text(text = if (firstName.isNotEmpty()) "$firstName $lastName" else "Set your name", fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onBackground)
                             Text(text = email, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                             Spacer(modifier = Modifier.height(12.dp))
                             Row(
@@ -114,10 +141,9 @@ fun ProfileScreen(onLogout: () -> Unit, onBack: () -> Unit, onNavigateToSettings
                         title = "Personal Information", 
                         icon = Icons.Default.PersonOutline,
                         iconColor = Color(0xFF00C9B1),
-                        iconBg = Color(0xFFE0F7F4)
-                    ) {
-                        scope.launch { snackbarHostState.showSnackbar("ACCESSING: Personal Data") }
-                    }
+                        iconBg = Color(0xFFE0F7F4),
+                        onClick = onNavigateToPersonalInformation
+                    )
                     ProfileMenuItem(
                         title = "Medical Records", 
                         icon = Icons.Default.MedicalInformation,
@@ -138,13 +164,15 @@ fun ProfileScreen(onLogout: () -> Unit, onBack: () -> Unit, onNavigateToSettings
                 
                 Spacer(modifier = Modifier.height(36.dp))
                 VibrantButton(
-                    text = if (isEditing) "Save Profile" else "Edit Profile",
+                    text = if (isEditing) (if (updateState is Resource.Loading) "Saving..." else "Save Profile") else "Edit Profile",
                     onClick = { 
                         if (isEditing) {
-                            scope.launch { snackbarHostState.showSnackbar("Profile updated successfully") }
+                            viewModel.updateProfile(firstName, lastName, email)
+                        } else {
+                            isEditing = true
                         }
-                        isEditing = !isEditing 
-                    }
+                    },
+                    enabled = updateState !is Resource.Loading
                 )
                 
                 Spacer(modifier = Modifier.height(16.dp))

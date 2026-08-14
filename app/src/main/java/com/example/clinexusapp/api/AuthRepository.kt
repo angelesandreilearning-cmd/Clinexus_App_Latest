@@ -42,10 +42,10 @@ class AuthRepository(private val apiService: ApiService) {
         }
     }
 
-    suspend fun verifyOtp(email: String, otp: String): Resource<GenericResponse> {
+    suspend fun verifyEmail(email: String, otp: String): Resource<GenericResponse> {
         return try {
             val request = VerifyOtpRequest(email, otp)
-            val response = apiService.verifyOtp(request)
+            val response = apiService.verifyEmail(request)
             if (response.isSuccessful && (response.body() != null)) {
                 Resource.Success(response.body()!!)
             } else {
@@ -107,6 +107,34 @@ class AuthRepository(private val apiService: ApiService) {
                 Resource.Success(response.body()!!)
             } else {
                 Resource.Error(response.errorBody()?.string() ?: "Failed to fetch history")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "An unexpected error occurred")
+        }
+    }
+
+    suspend fun getPatientProfile(): Resource<PatientInfo> {
+        return try {
+            val token = SessionManager.token ?: return Resource.Error("Not authenticated")
+            val response = apiService.getPatientProfile("Bearer $token")
+            if (response.isSuccessful && (response.body() != null)) {
+                Resource.Success(response.body()!!)
+            } else {
+                Resource.Error(response.errorBody()?.string() ?: "Failed to fetch profile")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "An unexpected error occurred")
+        }
+    }
+
+    suspend fun updatePatientProfile(request: UpdateProfileRequest): Resource<GenericResponse> {
+        return try {
+            val token = SessionManager.token ?: return Resource.Error("Not authenticated")
+            val response = apiService.updatePatientProfile("Bearer $token", request)
+            if (response.isSuccessful && (response.body() != null)) {
+                Resource.Success(response.body()!!)
+            } else {
+                Resource.Error(response.errorBody()?.string() ?: "Failed to update profile")
             }
         } catch (e: Exception) {
             Resource.Error(e.message ?: "An unexpected error occurred")
@@ -177,6 +205,78 @@ class AuthRepository(private val apiService: ApiService) {
                 Resource.Success(response.body()!!)
             } else {
                 Resource.Error(response.errorBody()?.string() ?: "Failed to fetch insights")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "An unexpected error occurred")
+        }
+    }
+
+    suspend fun getAvailableContacts(): Resource<List<ContactDTO>> {
+        return try {
+            val token = SessionManager.token ?: return Resource.Error("Not authenticated")
+            val response = apiService.getAvailableContacts("Bearer $token")
+            if (response.isSuccessful && (response.body() != null)) {
+                Resource.Success(response.body()!!)
+            } else {
+                Resource.Error(response.errorBody()?.string() ?: "Failed to fetch contacts")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "An unexpected error occurred")
+        }
+    }
+
+    suspend fun getConversations(): Resource<List<ConversationDTO>> {
+        return try {
+            val token = SessionManager.token ?: return Resource.Error("Not authenticated")
+            val response = apiService.getConversations("Bearer $token")
+            if (response.isSuccessful && (response.body() != null)) {
+                Resource.Success(response.body()!!)
+            } else {
+                Resource.Error(response.errorBody()?.string() ?: "Failed to fetch conversations")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "An unexpected error occurred")
+        }
+    }
+
+    suspend fun getConversationMessages(conversationID: Int): Resource<ConversationMessagesResponse> {
+        return try {
+            val token = SessionManager.token ?: return Resource.Error("Not authenticated")
+            val response = apiService.getConversationMessages("Bearer $token", conversationID)
+            if (response.isSuccessful && (response.body() != null)) {
+                Resource.Success(response.body()!!)
+            } else {
+                Resource.Error(response.errorBody()?.string() ?: "Failed to fetch messages")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "An unexpected error occurred")
+        }
+    }
+
+    suspend fun sendMessage(receiverAccountType: String, receiverAccountID: Int, messageContent: String): Resource<SendMessageResponse> {
+        return try {
+            val token = SessionManager.token ?: return Resource.Error("Not authenticated")
+            val request = SendMessageRequest(receiverAccountType, receiverAccountID, messageContent)
+            val response = apiService.sendMessage("Bearer $token", request)
+            if (response.isSuccessful && (response.body() != null)) {
+                Resource.Success(response.body()!!)
+            } else {
+                Resource.Error(response.errorBody()?.string() ?: "Failed to send message")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "An unexpected error occurred")
+        }
+    }
+
+    suspend fun markConversationAsRead(conversationID: Int, lastReadMessageID: Int): Resource<GenericResponse> {
+        return try {
+            val token = SessionManager.token ?: return Resource.Error("Not authenticated")
+            val request = MarkReadRequest(lastReadMessageID)
+            val response = apiService.markConversationAsRead("Bearer $token", conversationID, request)
+            if (response.isSuccessful && (response.body() != null)) {
+                Resource.Success(response.body()!!)
+            } else {
+                Resource.Error(response.errorBody()?.string() ?: "Failed to mark as read")
             }
         } catch (e: Exception) {
             Resource.Error(e.message ?: "An unexpected error occurred")

@@ -18,6 +18,7 @@ import com.example.clinexusapp.ui.screens.main.MainScreen
 import com.example.clinexusapp.ui.screens.appointments.AppointmentBookingScreen
 import com.example.clinexusapp.ui.screens.appointments.AppointmentHistoryScreen
 import com.example.clinexusapp.ui.screens.chat.ChatScreen
+import com.example.clinexusapp.ui.screens.profile.PersonalInformationScreen
 import com.example.clinexusapp.ui.screens.notifications.NotificationScreen
 import com.example.clinexusapp.ui.screens.settings.SettingsScreen
 import com.example.clinexusapp.util.SessionManager
@@ -168,6 +169,13 @@ fun SetupNavGraph(navController: NavHostController, settingsViewModel: SettingsV
         composable(route = Screen.Notifications.route) {
             NotificationScreen(
                 onBack = { navController.popBackStack() }
+            )
+        }
+        composable(route = Screen.PersonalInformation.route) {
+            val profileViewModel: ProfileViewModel = viewModel(factory = factory)
+            PersonalInformationScreen(
+                onBack = { navController.popBackStack() },
+                viewModel = profileViewModel
             )
         }
         composable(route = Screen.Settings.route) {

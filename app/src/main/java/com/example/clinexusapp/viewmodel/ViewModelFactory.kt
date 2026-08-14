@@ -38,6 +38,10 @@ class ViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return DashboardViewModel(repository) as T
         }
+        if (modelClass.isAssignableFrom(ProfileViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return ProfileViewModel(repository) as T
+        }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

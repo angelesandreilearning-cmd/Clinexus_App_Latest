@@ -84,6 +84,14 @@ object SessionManager {
         } ?: Log.w(TAG, "saveSession called but sharedPreferences is null")
     }
 
+    fun updateProfile(patient: PatientInfo) {
+        _currentUser.value = patient
+        sharedPreferences?.edit {
+            putString(KEY_PATIENT_INFO, Gson().toJson(patient))
+            Log.d(TAG, "Profile updated successfully for patient ID: ${patient.patientID}")
+        }
+    }
+
     fun logout() {
         _token = null
         _currentUser.value = null

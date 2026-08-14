@@ -66,6 +66,7 @@ fun MainScreen(rootNavController: NavHostController, settingsViewModel: Settings
                 ChatScreen(onBack = { navController.popBackStack() }, viewModel = chatViewModel)
             }
             composable(route = Screen.Profile.route) {
+                val profileViewModel: ProfileViewModel = viewModel(factory = factory)
                 ProfileScreen(
                     onLogout = {
                         SessionManager.logout()
@@ -76,7 +77,11 @@ fun MainScreen(rootNavController: NavHostController, settingsViewModel: Settings
                     onBack = { navController.popBackStack() },
                     onNavigateToSettings = {
                         navController.navigate(Screen.Settings.route)
-                    }
+                    },
+                    onNavigateToPersonalInformation = {
+                        rootNavController.navigate(Screen.PersonalInformation.route)
+                    },
+                    viewModel = profileViewModel
                 )
             }
         }

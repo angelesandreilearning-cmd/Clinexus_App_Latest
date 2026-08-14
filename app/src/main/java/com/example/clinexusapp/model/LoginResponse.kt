@@ -13,5 +13,12 @@ data class PatientInfo(
     val role: String,
     val email: String? = null,
     val firstName: String? = null,
-    val lastName: String? = null
+    val middleName: String? = null,
+    val lastName: String? = null,
+    val phoneNumber: String? = null,
+    val dateOfBirth: String? = null,
+    val streetAddress: String? = null,
+    val province: String? = null,
+    val city: String? = null,
+    val barangay: String? = null
 )

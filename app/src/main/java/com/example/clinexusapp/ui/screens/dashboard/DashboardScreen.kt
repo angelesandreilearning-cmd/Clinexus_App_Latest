@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.clinexusapp.ui.components.DashboardSkeleton
 import com.example.clinexusapp.ui.components.NeumorphicCard
+import com.example.clinexusapp.ui.components.VibrantButton
 import com.example.clinexusapp.ui.components.WavyTealHeader
 import com.example.clinexusapp.ui.navigation.Screen
 import com.example.clinexusapp.ui.theme.DeepTeal
@@ -69,6 +70,7 @@ fun DashboardScreen(
 
     val newsState by viewModel.newsState.collectAsState()
     val insightsState by viewModel.insightsState.collectAsState()
+    val nextAppt by viewModel.nextAppointment.collectAsState()
 
     if (showInsightDialog != null) {
         val article = showInsightDialog!!
@@ -128,63 +130,81 @@ fun DashboardScreen(
                             modifier = Modifier.padding(bottom = 12.dp),
                         )
                         NeumorphicCard(modifier = Modifier.fillMaxWidth()) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (nextAppt != null) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(54.dp)
+                                                .background(Color(0xFFE0F7F4), RoundedCornerShape(14.dp)),
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            Icon(Icons.AutoMirrored.Filled.EventNote, null, tint = DeepTeal, modifier = Modifier.size(26.dp))
+                                        }
+                                        Spacer(modifier = Modifier.width(18.dp))
+                                        Column {
+                                            Text(
+                                                text = nextAppt!!.treatment, 
+                                                fontWeight = FontWeight.Bold, 
+                                                color = MaterialTheme.colorScheme.onSurface, 
+                                                fontSize = 17.sp,
+                                            )
+                                            Text(
+                                                text = "${nextAppt!!.date} • ${nextAppt!!.time}", 
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), 
+                                                fontSize = 13.sp,
+                                            )
+                                        }
+                                    }
                                     Box(
-                                        modifier = Modifier
-                                            .size(54.dp)
-                                            .background(Color(0xFFE0F7F4), RoundedCornerShape(14.dp)),
+                                        modifier = Modifier.size(64.dp),
                                         contentAlignment = Alignment.Center,
                                     ) {
-                                        Icon(Icons.AutoMirrored.Filled.EventNote, null, tint = DeepTeal, modifier = Modifier.size(26.dp))
-                                    }
-                                    Spacer(modifier = Modifier.width(18.dp))
-                                    Column {
-                                        Text(
-                                            text = "Dental Cleaning", 
-                                            fontWeight = FontWeight.Bold, 
-                                            color = MaterialTheme.colorScheme.onSurface, 
-                                            fontSize = 17.sp,
+                                        CircularProgressIndicator(
+                                            progress = { 1f },
+                                            modifier = Modifier.fillMaxSize(),
+                                            color = DeepTeal,
+                                            strokeWidth = 4.dp,
+                                            trackColor = DeepTeal.copy(alpha = 0.1f),
                                         )
-                                        Text(
-                                            text = "July 30, 2026 • 10:00 AM", 
-                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), 
-                                            fontSize = 13.sp,
-                                        )
+                                        Icon(Icons.Default.Schedule, null, tint = DeepTeal, modifier = Modifier.size(24.dp))
                                     }
                                 }
-                                Box(
-                                    modifier = Modifier.size(64.dp),
-                                    contentAlignment = Alignment.Center,
+                                Spacer(modifier = Modifier.height(24.dp))
+                                Surface(
+                                    onClick = { rootNavController.navigate(Screen.AppointmentHistory.route) },
+                                    color = MaterialTheme.colorScheme.primary,
+                                    shape = RoundedCornerShape(20.dp),
+                                    modifier = Modifier.align(Alignment.End),
                                 ) {
-                                    CircularProgressIndicator(
-                                        progress = { 0.75f },
-                                        modifier = Modifier.fillMaxSize(),
-                                        color = DeepTeal,
-                                        strokeWidth = 4.dp,
-                                        trackColor = DeepTeal.copy(alpha = 0.1f),
+                                    Text(
+                                        text = "View Details", 
+                                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+                                        fontSize = 13.sp, 
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onPrimary,
                                     )
-                                    Icon(Icons.Default.Schedule, null, tint = DeepTeal, modifier = Modifier.size(24.dp))
                                 }
-                            }
-                            Spacer(modifier = Modifier.height(24.dp))
-                            Surface(
-                                onClick = { rootNavController.navigate(Screen.AppointmentHistory.route) },
-                                color = MaterialTheme.colorScheme.primary,
-                                shape = RoundedCornerShape(20.dp),
-                                modifier = Modifier.align(Alignment.End),
-                            ) {
-                                Text(
-                                    text = "View Details", 
-                                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-                                    fontSize = 13.sp, 
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                )
+                            } else {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = "No upcoming appointments",
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                        fontSize = 15.sp
+                                    )
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    VibrantButton(
+                                        text = "Book Now",
+                                        onClick = { rootNavController.navigate(Screen.AppointmentBooking.route) }
+                                    )
+                                }
                             }
                         }
                     }

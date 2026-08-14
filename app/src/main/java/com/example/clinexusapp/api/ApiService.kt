@@ -15,8 +15,8 @@ interface ApiService {
         @Body request: RegisterRequest
     ): Response<RegisterResponse>
 
-    @POST("api/verify-otp")
-    suspend fun verifyOtp(
+    @POST("api/verify-email")
+    suspend fun verifyEmail(
         @Body request: VerifyOtpRequest
     ): Response<GenericResponse>
 
@@ -40,6 +40,46 @@ interface ApiService {
     suspend fun getAppointmentHistory(
         @Header("Authorization") token: String
     ): Response<List<AppointmentDTO>>
+
+    @GET("api/patient-profile")
+    suspend fun getPatientProfile(
+        @Header("Authorization") token: String
+    ): Response<PatientInfo>
+
+    @PUT("api/patient-profile")
+    suspend fun updatePatientProfile(
+        @Header("Authorization") token: String,
+        @Body request: UpdateProfileRequest
+    ): Response<GenericResponse>
+
+    @GET("api/available-contacts")
+    suspend fun getAvailableContacts(
+        @Header("Authorization") token: String
+    ): Response<List<ContactDTO>>
+
+    @GET("api/conversations")
+    suspend fun getConversations(
+        @Header("Authorization") token: String
+    ): Response<List<ConversationDTO>>
+
+    @GET("api/conversations/{conversationID}/messages")
+    suspend fun getConversationMessages(
+        @Header("Authorization") token: String,
+        @Path("conversationID") conversationID: Int
+    ): Response<ConversationMessagesResponse>
+
+    @POST("api/conversations/send-message")
+    suspend fun sendMessage(
+        @Header("Authorization") token: String,
+        @Body request: SendMessageRequest
+    ): Response<SendMessageResponse>
+
+    @PATCH("api/conversations/{conversationID}/read")
+    suspend fun markConversationAsRead(
+        @Header("Authorization") token: String,
+        @Path("conversationID") conversationID: Int,
+        @Body request: MarkReadRequest
+    ): Response<GenericResponse>
 
     @GET("api/chat-messages")
     suspend fun getChatMessages(
@@ -68,4 +108,6 @@ interface ApiService {
     suspend fun getHealthInsights(
         @Header("Authorization") token: String
     ): Response<List<HealthInsightDTO>>
+
+
 }
