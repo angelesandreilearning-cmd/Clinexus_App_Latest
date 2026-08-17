@@ -197,7 +197,7 @@ class AppointmentRepository(
             if (response.isSuccessful) {
 
                 Resource.Success(
-                    response.body()?.appointments
+                    response.body()
                         ?: emptyList()
                 )
 

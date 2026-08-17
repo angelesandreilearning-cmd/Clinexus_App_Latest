@@ -122,13 +122,21 @@ fun DashboardScreen(
 
                 item {
                     Column(modifier = Modifier.padding(horizontal = 24.dp).padding(top = 10.dp)) {
-                        Text(
-                            text = "Upcoming Appointment",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(bottom = 12.dp),
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Upcoming Appointment",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                            TextButton(onClick = { rootNavController.navigate(Screen.AppointmentHistory.route) }) {
+                                Text("VIEW ALL", fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
+                            }
+                        }
                         NeumorphicCard(modifier = Modifier.fillMaxWidth()) {
                             if (nextAppt != null) {
                                 Row(

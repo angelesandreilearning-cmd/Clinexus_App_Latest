@@ -103,6 +103,12 @@ class ProfileViewModel(
         }
     }
 
+    fun fetchProfile() {
+        viewModelScope.launch {
+            refreshProfile()
+        }
+    }
+
     private suspend fun refreshProfile() {
         repository.getPatientProfile().let { result ->
             if (result is Resource.Success) {

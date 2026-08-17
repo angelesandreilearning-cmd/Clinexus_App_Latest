@@ -29,6 +29,7 @@ import com.example.clinexusapp.ui.screens.dashboard.DashboardScreen
 import com.example.clinexusapp.ui.screens.doctors.DoctorListScreen
 import com.example.clinexusapp.ui.screens.chat.ChatScreen
 import com.example.clinexusapp.ui.screens.profile.ProfileScreen
+import com.example.clinexusapp.ui.screens.appointments.AppointmentHistoryScreen
 import com.example.clinexusapp.ui.theme.*
 import com.example.clinexusapp.util.SessionManager
 import com.example.clinexusapp.viewmodel.*
@@ -69,6 +70,16 @@ fun MainScreen(rootNavController: NavHostController, settingsViewModel: Settings
                 val chatViewModel: ChatViewModel = viewModel(factory = factory)
                 ChatScreen(onBack = { navController.popBackStack() }, viewModel = chatViewModel)
             }
+            composable(route = Screen.AppointmentHistory.route) {
+                val historyViewModel: HistoryViewModel = viewModel(factory = factory)
+                AppointmentHistoryScreen(
+                    onBack = { navController.popBackStack() },
+                    onNavigateToBooking = {
+                        rootNavController.navigate(Screen.AppointmentBooking.route)
+                    },
+                    viewModel = historyViewModel
+                )
+            }
             composable(route = Screen.Profile.route) {
                 val profileViewModel: ProfileViewModel = viewModel(factory = factory)
                 ProfileScreen(
@@ -85,6 +96,9 @@ fun MainScreen(rootNavController: NavHostController, settingsViewModel: Settings
                     onNavigateToPersonalInformation = {
                         rootNavController.navigate(Screen.PersonalInformation.route)
                     },
+                    onNavigateToHistory = {
+                        rootNavController.navigate(Screen.AppointmentHistory.route)
+                    },
                     viewModel = profileViewModel
                 )
             }
@@ -97,6 +111,7 @@ fun TealBottomBar(navController: NavHostController) {
     val screens = listOf(
         BottomBarScreen.Dashboard,
         BottomBarScreen.Doctors,
+        BottomBarScreen.Appointments,
         BottomBarScreen.Chat,
         BottomBarScreen.Profile
     )

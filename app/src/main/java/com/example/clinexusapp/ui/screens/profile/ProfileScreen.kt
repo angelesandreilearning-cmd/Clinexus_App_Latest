@@ -35,6 +35,7 @@ fun ProfileScreen(
     onBack: () -> Unit, 
     onNavigateToSettings: () -> Unit,
     onNavigateToPersonalInformation: () -> Unit,
+    onNavigateToHistory: () -> Unit,
     viewModel: ProfileViewModel
 ) {
     val user by SessionManager.currentUser.collectAsState()
@@ -151,6 +152,13 @@ fun ProfileScreen(
                         iconColor = Color(0xFF00C9B1),
                         iconBg = Color(0xFFE0F7F4),
                         onClick = onNavigateToPersonalInformation
+                    )
+                    ProfileMenuItem(
+                        title = "My Appointments", 
+                        icon = Icons.Default.EventNote,
+                        iconColor = DeepTeal,
+                        iconBg = MintSparkle,
+                        onClick = onNavigateToHistory
                     )
                     ProfileMenuItem(
                         title = "Medical Records", 

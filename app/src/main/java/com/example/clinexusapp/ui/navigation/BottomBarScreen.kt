@@ -19,6 +19,11 @@ sealed class BottomBarScreen(
         title = "Doctors",
         icon = Icons.Default.MedicalServices
     )
+    object Appointments : BottomBarScreen(
+        route = Screen.AppointmentHistory.route,
+        title = "Visits",
+        icon = Icons.Default.EventNote
+    )
     object Chat : BottomBarScreen(
         route = Screen.Chat.route,
         title = "Chat",

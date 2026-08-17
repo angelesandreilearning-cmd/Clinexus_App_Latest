@@ -17,7 +17,7 @@ interface AppointmentApiService {
     @GET("api/appointments")
     suspend fun getPatientAppointments(
         @Header("Authorization") token: String
-    ): Response<AppointmentsResponse>
+    ): Response<List<AppointmentDTO>>
 
     // Bookable services (FIXED ROUTE)
     @GET("api/appointments/requires-appointment-services")
