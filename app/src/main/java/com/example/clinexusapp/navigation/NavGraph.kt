@@ -139,9 +139,17 @@ fun SetupNavGraph(navController: NavHostController, settingsViewModel: SettingsV
         composable(route = Screen.Home.route) {
             MainScreen(rootNavController = navController, settingsViewModel = settingsViewModel)
         }
-        composable(route = Screen.AppointmentBooking.route) {
+        composable(
+            route = Screen.AppointmentBooking.route,
+            arguments = listOf(navArgument("doctorName") { 
+                type = NavType.StringType
+                defaultValue = "Dr. Olivia Bennett"
+            })
+        ) { backStackEntry ->
+            val doctorName = backStackEntry.arguments?.getString("doctorName") ?: "Dr. Olivia Bennett"
             val bookingViewModel: BookingViewModel = viewModel(factory = factory)
             AppointmentBookingScreen(
+                doctorName = doctorName,
                 onBack = { navController.popBackStack() },
                 onBookSuccess = {
                     navController.navigate(Screen.Home.route) {

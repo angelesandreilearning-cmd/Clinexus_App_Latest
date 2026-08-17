@@ -445,7 +445,7 @@ fun ContactItem(contact: ContactDTO, onClick: () -> Unit) {
 
 @Composable
 fun TealChatBubble(message: MessageDetailDTO, isFromMe: Boolean, isSeen: Boolean = false) {
-    // Inverted Alignment: Patient (isFromMe) on LEFT, Staff on RIGHT
+    // Alignment: Patient (isFromMe) on LEFT, Staff on RIGHT
     val alignment = if (isFromMe) Alignment.CenterStart else Alignment.CenterEnd
     val horizontalAlignment = if (isFromMe) Alignment.Start else Alignment.End
     val bubbleColor = if (isFromMe) MaterialTheme.colorScheme.primary else White
@@ -476,18 +476,21 @@ fun TealChatBubble(message: MessageDetailDTO, isFromMe: Boolean, isSeen: Boolean
                     fontWeight = FontWeight.Medium
                 )
             }
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically, 
+                modifier = Modifier.padding(top = 4.dp, start = 4.dp, end = 4.dp)
+            ) {
                 Text(
                     text = DateUtils.formatChatTime(message.message_time),
                     fontSize = 11.sp,
                     color = SlateGray.copy(alpha = 0.6f),
                 )
-                if (isFromMe && isSeen) {
-                    Spacer(modifier = Modifier.width(4.dp))
+                if (isFromMe) {
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "• Seen",
+                        text = if (isSeen) "Seen" else "Sent",
                         fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = if (isSeen) MaterialTheme.colorScheme.primary else SlateGray.copy(alpha = 0.5f),
                         fontWeight = FontWeight.Bold
                     )
                 }

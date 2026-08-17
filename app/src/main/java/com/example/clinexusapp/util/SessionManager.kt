@@ -7,8 +7,12 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.example.clinexusapp.model.PatientInfo
 import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Secure Session Manager (Native Android equivalent to Flutter Secure Storage)
@@ -24,38 +28,49 @@ object SessionManager {
     private val _currentUser = MutableStateFlow<PatientInfo?>(null)
     val currentUser = _currentUser.asStateFlow()
 
+    private val _isInitialized = MutableStateFlow(false)
+    val isInitialized = _isInitialized.asStateFlow()
+
     private var _token: String? = null
     val token: String? get() = _token
 
     private var sharedPreferences: android.content.SharedPreferences? = null
 
     fun init(context: Context) {
-        try {
-            sharedPreferences = createSharedPreferences(context)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to initialize EncryptedSharedPreferences, attempting recovery", e)
+        CoroutineScope(Dispatchers.IO).launch {
+            val startTime = System.currentTimeMillis()
             try {
-                // Recovery path: clear the preferences file and try again
-                // This usually fixes issues where the Keystore is corrupted or the master key is inaccessible
-                context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit(commit = true) {
-                    clear()
-                }
                 sharedPreferences = createSharedPreferences(context)
-            } catch (recoveryException: Exception) {
-                Log.e(TAG, "Recovery failed, session management will be unavailable", recoveryException)
-            }
-        }
-
-        sharedPreferences?.let { prefs ->
-            _token = prefs.getString(KEY_TOKEN, null)
-            val patientJson = prefs.getString(KEY_PATIENT_INFO, null)
-            if (patientJson != null) {
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to initialize EncryptedSharedPreferences, attempting recovery", e)
                 try {
-                    _currentUser.value = Gson().fromJson(patientJson, PatientInfo::class.java)
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error parsing patient info from prefs", e)
+                    context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit(commit = true) {
+                        clear()
+                    }
+                    sharedPreferences = createSharedPreferences(context)
+                } catch (recoveryException: Exception) {
+                    Log.e(TAG, "Recovery failed, session management will be unavailable", recoveryException)
                 }
             }
+
+            sharedPreferences?.let { prefs ->
+                _token = prefs.getString(KEY_TOKEN, null)
+                val patientJson = prefs.getString(KEY_PATIENT_INFO, null)
+                if (patientJson != null) {
+                    try {
+                        val patient = Gson().fromJson(patientJson, PatientInfo::class.java)
+                        withContext(Dispatchers.Main) {
+                            _currentUser.value = patient
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing patient info from prefs", e)
+                    }
+                }
+            }
+            
+            val duration = System.currentTimeMillis() - startTime
+            Log.d(TAG, "SessionManager initialized in ${duration}ms")
+            _isInitialized.value = true
         }
     }
 
