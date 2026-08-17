@@ -39,40 +39,127 @@ fun AppointmentHistoryScreen(
 ) {
     val historyState by viewModel.historyState.collectAsState()
     var selectedAppointment by remember { mutableStateOf<HistoryAppointment?>(null) }
+    var showActionDialog by remember { mutableStateOf(false) }
+    var showCancelDialog by remember { mutableStateOf(false) }
+    var showRescheduleDialog by remember { mutableStateOf(false) }
+    
+    var cancelReason by remember { mutableStateOf("") }
+    var rescheduleNote by remember { mutableStateOf("") }
+
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    val appointments = listOf(
-        HistoryAppointment("a1", "Dental Cleaning", "Oct 24, 2026 • 10:30 AM", Icons.Default.MedicalServices, VibrantTeal),
-        HistoryAppointment("a2", "Orthodontic Checkup", "Aug 5, 2026 • 2:00 PM", Icons.Default.Settings, Color(0xFF00A896))
-    )
-
-    if (selectedAppointment != null) {
+    // 1. Initial Choice Dialog
+    if (showActionDialog && selectedAppointment != null) {
         val appt = selectedAppointment!!
         AlertDialog(
-            onDismissRequest = { selectedAppointment = null },
-            title = { Text(appt.title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary) },
-            text = { Text("How would you like to manage this scheduled visit?") },
+            onDismissRequest = { showActionDialog = false },
+            title = { Text("Manage Visit", fontWeight = FontWeight.Black, color = RoyalNavy) },
+            text = { Text("What would you like to do with your appointment with ${appt.title}?") },
             confirmButton = {
-                TextButton(onClick = { 
-                    viewModel.rescheduleAppointment(appt.id, "Nov 1", "09:00 AM")
-                    selectedAppointment = null
-                    scope.launch { snackbarHostState.showSnackbar("RESCHEDULE: Pending Admin Approval") }
-                }) {
-                    Text("RESCHEDULE", fontWeight = FontWeight.Bold)
+                Button(
+                    onClick = { 
+                        showActionDialog = false
+                        showRescheduleDialog = true 
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = DeepTeal)
+                ) {
+                    Text("RESCHEDULE")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { 
-                    viewModel.cancelAppointment(appt.id)
-                    selectedAppointment = null
-                    scope.launch { snackbarHostState.showSnackbar("CANCEL: Pending Admin Approval") }
+                    showActionDialog = false
+                    showCancelDialog = true 
                 }) {
-                    Text("CANCEL VISIT", color = Color.Red.copy(alpha = 0.7f))
+                    Text("CANCEL VISIT", color = Color.Red)
                 }
             },
-            containerColor = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(20.dp)
+            containerColor = White,
+            shape = RoundedCornerShape(28.dp)
+        )
+    }
+
+    // 2. Cancellation Reason Dialog
+    if (showCancelDialog && selectedAppointment != null) {
+        AlertDialog(
+            onDismissRequest = { showCancelDialog = false },
+            title = { Text("Cancel Appointment", fontWeight = FontWeight.Bold, color = Color.Red) },
+            text = {
+                Column {
+                    Text("Please tell us why you are cancelling:")
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = cancelReason,
+                        onValueChange = { cancelReason = it },
+                        placeholder = { Text("Enter reason...") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (cancelReason.isNotBlank()) {
+                            viewModel.cancelAppointment(selectedAppointment!!.id, cancelReason)
+                            showCancelDialog = false
+                            selectedAppointment = null
+                            cancelReason = ""
+                            scope.launch { snackbarHostState.showSnackbar("Cancellation Request Sent") }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                    enabled = cancelReason.isNotBlank()
+                ) {
+                    Text("CONFIRM CANCEL")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCancelDialog = false }) { Text("BACK") }
+            }
+        )
+    }
+
+    // 3. Reschedule Note Dialog
+    if (showRescheduleDialog && selectedAppointment != null) {
+        AlertDialog(
+            onDismissRequest = { showRescheduleDialog = false },
+            title = { Text("Request Reschedule", fontWeight = FontWeight.Bold, color = DeepTeal) },
+            text = {
+                Column {
+                    Text("When would you like to move this appointment? (e.g. Next Monday morning)")
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = rescheduleNote,
+                        onValueChange = { rescheduleNote = it },
+                        placeholder = { Text("Enter your preference...") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (rescheduleNote.isNotBlank()) {
+                            // Note: We use placeholders for date/time as it's a "request" for now
+                            viewModel.rescheduleAppointment(selectedAppointment!!.id, "2026-01-01", "00:00", "00:00", rescheduleNote)
+                            showRescheduleDialog = false
+                            selectedAppointment = null
+                            rescheduleNote = ""
+                            scope.launch { snackbarHostState.showSnackbar("Reschedule Request Sent") }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = DeepTeal),
+                    enabled = rescheduleNote.isNotBlank()
+                ) {
+                    Text("SEND REQUEST")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRescheduleDialog = false }) { Text("BACK") }
+            }
         )
     }
 
@@ -123,10 +210,11 @@ fun AppointmentHistoryScreen(
                                 selectedAppointment = HistoryAppointment(
                                     appointment.id,
                                     appointment.doctor,
-                                    "${appointment.date} • ${appointment.time}",
+                                    "${appointment.date} • ${appointment.startTime}",
                                     Icons.Default.MedicalServices,
                                     VibrantTeal
                                 )
+                                showActionDialog = true
                             }) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Box(
@@ -146,7 +234,7 @@ fun AppointmentHistoryScreen(
                                             fontSize = 16.sp
                                         )
                                         Text(
-                                            text = "${appointment.date} • ${appointment.time}", 
+                                            text = "${appointment.date} • ${appointment.startTime}", 
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), 
                                             fontSize = 13.sp
                                         )
@@ -212,4 +300,4 @@ fun AppointmentHistoryScreen(
     }
 }
 
-data class HistoryAppointment(val id: String, val title: String, val date: String, val icon: androidx.compose.ui.graphics.vector.ImageVector, val color: Color)
+data class HistoryAppointment(val id: Int, val title: String, val date: String, val icon: androidx.compose.ui.graphics.vector.ImageVector, val color: Color)

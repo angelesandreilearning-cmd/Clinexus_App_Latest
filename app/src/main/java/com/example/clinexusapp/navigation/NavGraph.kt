@@ -23,12 +23,14 @@ import com.example.clinexusapp.ui.screens.notifications.NotificationScreen
 import com.example.clinexusapp.ui.screens.settings.SettingsScreen
 import com.example.clinexusapp.util.SessionManager
 import com.example.clinexusapp.viewmodel.*
+import com.example.clinexusapp.api.AppointmentRepository
 
 @Composable
 fun SetupNavGraph(navController: NavHostController, settingsViewModel: SettingsViewModel) {
     val repository = AuthRepository(RetrofitClient.instance)
     val addressRepository = AddressRepository(RetrofitClient.addressInstance)
-    val factory = ViewModelFactory(repository, addressRepository)
+    val appointmentRepository = AppointmentRepository(RetrofitClient.appointmentInstance)
+    val factory = ViewModelFactory(repository, addressRepository, appointmentRepository)
 
     NavHost(
         navController = navController,
@@ -142,8 +144,8 @@ fun SetupNavGraph(navController: NavHostController, settingsViewModel: SettingsV
             AppointmentBookingScreen(
                 onBack = { navController.popBackStack() },
                 onBookSuccess = {
-                    navController.navigate(Screen.Dashboard.route) {
-                        popUpTo(Screen.Dashboard.route) { inclusive = true }
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
                     }
                 },
                 viewModel = bookingViewModel

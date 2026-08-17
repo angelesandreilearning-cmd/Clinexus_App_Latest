@@ -40,4 +40,14 @@ object RetrofitClient {
 
         retrofit.create(AddressApiService::class.java)
     }
+
+    val appointmentInstance: AppointmentApiService by lazy {
+        val retrofit = Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(client)
+            .build()
+
+        retrofit.create(AppointmentApiService::class.java)
+    }
 }

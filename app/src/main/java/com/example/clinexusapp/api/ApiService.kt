@@ -30,12 +30,6 @@ interface ApiService {
         @Body request: ResetPasswordRequest
     ): Response<GenericResponse>
 
-    @POST("api/appointments")
-    suspend fun createAppointment(
-        @Header("Authorization") token: String,
-        @Body request: CreateAppointmentRequest
-    ): Response<CreateAppointmentResponse>
-
     @GET("api/patient-history")
     suspend fun getAppointmentHistory(
         @Header("Authorization") token: String
@@ -85,19 +79,6 @@ interface ApiService {
     suspend fun getChatMessages(
         @Header("Authorization") token: String
     ): Response<List<ChatMessageDTO>>
-
-    @PUT("api/appointments/{id}")
-    suspend fun updateAppointment(
-        @Path("id") id: String,
-        @Header("Authorization") token: String,
-        @Body body: Map<String, String>
-    ): Response<Unit>
-
-    @DELETE("api/appointments/{id}")
-    suspend fun deleteAppointment(
-        @Path("id") id: String,
-        @Header("Authorization") token: String
-    ): Response<Unit>
 
     @GET("api/clinic-news")
     suspend fun getClinicNews(

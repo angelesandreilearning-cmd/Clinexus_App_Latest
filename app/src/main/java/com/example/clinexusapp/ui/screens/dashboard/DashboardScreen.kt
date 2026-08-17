@@ -154,7 +154,7 @@ fun DashboardScreen(
                                                 fontSize = 17.sp,
                                             )
                                             Text(
-                                                text = "${nextAppt!!.date} • ${nextAppt!!.time}", 
+                                                text = "${nextAppt!!.date} • ${nextAppt!!.startTime}", 
                                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), 
                                                 fontSize = 13.sp,
                                             )

@@ -2,6 +2,7 @@ package com.example.clinexusapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.clinexusapp.api.AppointmentRepository
 import com.example.clinexusapp.api.AuthRepository
 import com.example.clinexusapp.model.AppointmentDTO
 import com.example.clinexusapp.model.ClinicNewsDTO
@@ -11,8 +12,13 @@ import com.example.clinexusapp.util.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
-class DashboardViewModel(private val repository: AuthRepository) : ViewModel() {
+class DashboardViewModel(
+    private val repository: AuthRepository,
+    private val appointmentRepository: AppointmentRepository
+) : ViewModel() {
 
     private val _newsState = MutableStateFlow<Resource<List<ClinicNewsDTO>>>(Resource.Loading())
     val newsState = _newsState.asStateFlow()
@@ -41,10 +47,32 @@ class DashboardViewModel(private val repository: AuthRepository) : ViewModel() {
             }
 
             launch {
-                val historyResult = repository.getAppointmentHistory()
-                if (historyResult is Resource.Success && historyResult.data != null) {
-                    // Assuming history is sorted by date or we need to find the closest future one
-                    _nextAppointment.value = historyResult.data.firstOrNull() 
+                val result = appointmentRepository.getPatientAppointments()
+                if (result is Resource.Success && result.data != null) {
+                    val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+                    val now = Date()
+                    
+                    // Filter: Not cancelled and in the future (or today)
+                    // Sort: Closest to current time
+                    val next = result.data
+                        .filter { it.status.lowercase() != "cancelled" }
+                        .sortedBy { 
+                            try {
+                                sdf.parse("${it.date} ${it.startTime}")
+                            } catch (_: Exception) {
+                                null
+                            }
+                        }
+                        .firstOrNull { 
+                            try {
+                                val apptDate = sdf.parse("${it.date} ${it.startTime}")
+                                apptDate?.after(now) == true || it.date == SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(now)
+                            } catch (_: Exception) {
+                                false
+                            }
+                        }
+                    
+                    _nextAppointment.value = next
                 }
             }
 

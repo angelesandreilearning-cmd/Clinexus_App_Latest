@@ -33,13 +33,17 @@ import com.example.clinexusapp.ui.theme.*
 import com.example.clinexusapp.util.SessionManager
 import com.example.clinexusapp.viewmodel.*
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.clinexusapp.api.AddressRepository
+import com.example.clinexusapp.api.AppointmentRepository
 import com.example.clinexusapp.api.AuthRepository
 import com.example.clinexusapp.api.RetrofitClient
 
 @Composable
 fun MainScreen(rootNavController: NavHostController, settingsViewModel: SettingsViewModel) {
     val repository = AuthRepository(RetrofitClient.instance)
-    val factory = ViewModelFactory(repository)
+    val addressRepository = AddressRepository(RetrofitClient.addressInstance)
+    val appointmentRepository = AppointmentRepository(RetrofitClient.appointmentInstance)
+    val factory = ViewModelFactory(repository, addressRepository, appointmentRepository)
     val navController = rememberNavController()
     Scaffold(
         bottomBar = { TealBottomBar(navController = navController) },

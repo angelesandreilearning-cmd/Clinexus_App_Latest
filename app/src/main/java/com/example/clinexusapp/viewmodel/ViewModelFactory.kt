@@ -3,11 +3,13 @@ package com.example.clinexusapp.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.clinexusapp.api.AddressRepository
+import com.example.clinexusapp.api.AppointmentRepository
 import com.example.clinexusapp.api.AuthRepository
 
 class ViewModelFactory(
     private val repository: AuthRepository,
-    private val addressRepository: AddressRepository? = null
+    private val addressRepository: AddressRepository? = null,
+    private val appointmentRepository: AppointmentRepository? = null
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
@@ -24,11 +26,11 @@ class ViewModelFactory(
         }
         if (modelClass.isAssignableFrom(BookingViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return BookingViewModel(repository) as T
+            return BookingViewModel(repository, appointmentRepository!!) as T
         }
         if (modelClass.isAssignableFrom(HistoryViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return HistoryViewModel(repository) as T
+            return HistoryViewModel(repository, appointmentRepository!!) as T
         }
         if (modelClass.isAssignableFrom(ChatViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
@@ -36,11 +38,11 @@ class ViewModelFactory(
         }
         if (modelClass.isAssignableFrom(DashboardViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return DashboardViewModel(repository) as T
+            return DashboardViewModel(repository, appointmentRepository!!) as T
         }
         if (modelClass.isAssignableFrom(ProfileViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return ProfileViewModel(repository) as T
+            return ProfileViewModel(repository, addressRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

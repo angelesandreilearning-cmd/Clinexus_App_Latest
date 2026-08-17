@@ -2,10 +2,7 @@ package com.example.clinexusapp.ui.screens.appointments
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -14,16 +11,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -33,8 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.clinexusapp.data.model.DentalService
-import com.example.clinexusapp.data.model.TimeSlot
+import com.example.clinexusapp.model.*
 import com.example.clinexusapp.ui.components.*
 import com.example.clinexusapp.ui.theme.*
 import com.example.clinexusapp.util.NotificationHelper
@@ -42,333 +38,53 @@ import com.example.clinexusapp.util.Resource
 import com.example.clinexusapp.viewmodel.BookingViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 import java.util.UUID
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppointmentBookingScreen(
-    onBack: () -> Unit,
-    onBookSuccess: () -> Unit,
-    viewModel: BookingViewModel = viewModel()
+fun SelectionCard(
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit,
 ) {
-    val context = LocalContext.current
-    var selectedDate by remember { mutableStateOf("Oct 24") }
-    var selectedTime by remember { mutableStateOf<TimeSlot?>(null) }
-    var isBookingConfirmed by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(if (isSelected) 0.98f else 1f, label = "scale")
     
-    val services by viewModel.services.collectAsState()
-    val selectedService by viewModel.selectedService.collectAsState()
-    val timeSlots by viewModel.timeSlots.collectAsState()
-    val bookingState by viewModel.bookingState.collectAsState()
-
-    LaunchedEffect(bookingState) {
-        if (bookingState is Resource.Success) {
-            NotificationHelper.showBookingNotification(context, "Dr. Olivia Bennett")
-            isBookingConfirmed = true
-            viewModel.resetState()
-        }
-    }
-
-    Scaffold(
-        topBar = {
-            ElegantTopAppBar(
-                title = "Schedule Visit",
-                onBack = if (isBookingConfirmed) null else onBack
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { padding ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(32.dp)
-            ) {
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // Doctor Summary
-                Box(modifier = Modifier.padding(horizontal = 24.dp)) {
-                    ElegantDoctorSummary("Dr. Olivia Bennett")
-                }
-                
-                // Step 1: Services
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    BookingSectionHeader("1. Select Service", Icons.Default.Info)
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 8.dp)
-                    ) {
-                        items(services) { service ->
-                            BookingServiceItem(
-                                service = service,
-                                isSelected = selectedService?.id == service.id,
-                                onClick = { 
-                                    if (!isBookingConfirmed) {
-                                        viewModel.selectService(service)
-                                        selectedTime = null
-                                    }
-                                }
-                            )
-                        }
-                    }
-                }
-
-                // Step 2: Date
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    BookingSectionHeader("2. Select Date", Icons.Default.Event)
-                    BookingDateSelector(selectedDate) { 
-                        if (!isBookingConfirmed) selectedDate = it 
-                    }
-                }
-                
-                // Step 3: Time
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    BookingSectionHeader("3. Preferred Time", Icons.Default.AccessTime)
-                    Box(modifier = Modifier.padding(horizontal = 24.dp)) {
-                        NeumorphicCard {
-                            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                                BookingTimeGrid(
-                                    timeSlots = timeSlots,
-                                    selectedTime = selectedTime,
-                                    onTimeSelected = { 
-                                        if (!isBookingConfirmed) selectedTime = it 
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(140.dp))
-            }
-
-            // Bottom Bar
-            AnimatedVisibility(
-                visible = selectedTime != null && selectedService != null && !isBookingConfirmed,
-                enter = slideInVertically { it } + fadeIn(),
-                exit = slideOutVertically { it } + fadeOut(),
-                modifier = Modifier.align(Alignment.BottomCenter)
-            ) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.surface,
-                    shadowElevation = 16.dp,
-                    shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .padding(24.dp)
-                            .navigationBarsPadding(),
-                        verticalArrangement = Arrangement.spacedBy(20.dp)
-                    ) {
-                        if (selectedTime != null && selectedService != null) {
-                            BookingSummaryRow(
-                                time = selectedTime!!.time,
-                                service = selectedService!!.name,
-                                duration = selectedService!!.durationMinutes
-                            )
-                        }
-                        
-                        VibrantButton(
-                            text = if (bookingState is Resource.Loading) "Processing..." else "Authorize Booking",
-                            onClick = {
-                                viewModel.createAppointment(
-                                    serviceId = selectedService?.id ?: "",
-                                    doctorName = "Dr. Olivia Bennett",
-                                    date = selectedDate,
-                                    time = selectedTime?.time ?: ""
-                                )
-                            },
-                            enabled = bookingState !is Resource.Loading
-                        )
-                    }
-                }
-            }
-
-            // Success Overlay
-            if (isBookingConfirmed) {
-                BookingSuccessOverlay(
-                    doctorName = "Dr. Olivia Bennett",
-                    date = selectedDate,
-                    time = selectedTime?.time ?: "",
-                    onDone = onBookSuccess
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun BookingSectionHeader(title: String, icon: ImageVector) {
-    Row(
-        modifier = Modifier.padding(horizontal = 24.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = title, 
-            fontWeight = FontWeight.Bold, 
-            fontSize = 18.sp, 
-            color = MaterialTheme.colorScheme.onBackground
-        )
-    }
-}
-
-@Composable
-fun BookingServiceItem(service: DentalService, isSelected: Boolean, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
-        modifier = Modifier.width(140.dp),
-        shape = RoundedCornerShape(22.dp),
-        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
-        shadowElevation = if (isSelected) 6.dp else 1.dp
+        modifier = modifier
+            .scale(scale)
+            .shadow(
+                elevation = if (isSelected) 8.dp else 2.dp,
+                shape = RoundedCornerShape(20.dp),
+                spotColor = if (isSelected) DeepTeal.copy(alpha = 0.5f) else Color.Black.copy(alpha = 0.1f),
+            ),
+        shape = RoundedCornerShape(20.dp),
+        color = Color.Transparent
     ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(text = service.emoji, fontSize = 32.sp)
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = service.name, 
-                fontWeight = FontWeight.Bold, 
-                fontSize = 14.sp,
-                textAlign = TextAlign.Center,
-                color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = "${service.durationMinutes} min", 
-                fontSize = 12.sp,
-                color = if (isSelected) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-            )
-        }
-    }
-}
-
-@Composable
-fun BookingDateSelector(selected: String, onSelect: (String) -> Unit) {
-    val dates = listOf("Mon 24", "Tue 25", "Wed 26", "Thu 27", "Fri 28")
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(horizontal = 24.dp)
-    ) {
-        items(dates) { date ->
-            val fullDate = "Oct ${date.split(" ").last()}"
-            val isSelected = selected == fullDate
-            Surface(
-                onClick = { onSelect(fullDate) },
-                modifier = Modifier.width(80.dp),
-                shape = RoundedCornerShape(18.dp),
-                color = if (isSelected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surface,
-                shadowElevation = if (isSelected) 4.dp else 1.dp,
-                border = if (!isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)) else null
-            ) {
-                Column(
-                    modifier = Modifier.padding(vertical = 14.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = date.split(" ").first().uppercase(), 
-                        color = if (isSelected) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), 
-                        fontSize = 11.sp, 
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = date.split(" ").last(), 
-                        color = if (isSelected) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurface, 
-                        fontSize = 20.sp, 
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun BookingTimeGrid(timeSlots: List<TimeSlot>, selectedTime: TimeSlot?, onTimeSelected: (TimeSlot) -> Unit) {
-    val rows = timeSlots.chunked(3)
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        rows.forEach { rowSlots ->
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                rowSlots.forEach { slot ->
-                    Box(modifier = Modifier.weight(1f)) {
-                        BookingTimeSlotItem(slot = slot, isSelected = selectedTime?.time == slot.time, onClick = { onTimeSelected(slot) })
-                    }
-                }
-                repeat(3 - rowSlots.size) { Spacer(modifier = Modifier.weight(1f)) }
-            }
-        }
-    }
-}
-
-@Composable
-fun BookingTimeSlotItem(slot: TimeSlot, isSelected: Boolean, onClick: () -> Unit) {
-    val bgColor = when {
-        slot.isFullyBooked -> MaterialTheme.colorScheme.outline.copy(alpha = 0.05f)
-        isSelected -> MaterialTheme.colorScheme.primary
-        else -> MaterialTheme.colorScheme.surface
-    }
-    Surface(
-        onClick = onClick,
-        enabled = !slot.isFullyBooked,
-        shape = RoundedCornerShape(14.dp),
-        color = bgColor,
-        shadowElevation = if (isSelected) 2.dp else 0.dp,
-        border = if (!isSelected && !slot.isFullyBooked) BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)) else null
-    ) {
-        Box(modifier = Modifier.padding(vertical = 14.dp), contentAlignment = Alignment.Center) {
-            Text(
-                text = slot.time, 
-                color = if (isSelected) MaterialTheme.colorScheme.onPrimary else if (slot.isFullyBooked) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.onSurface, 
-                fontSize = 14.sp, 
-                fontWeight = FontWeight.Bold
-            )
-        }
-    }
-}
-
-@Composable
-fun BookingSummaryRow(time: String, service: String, duration: Int) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
             modifier = Modifier
-                .size(48.dp)
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), RoundedCornerShape(14.dp)),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .background(
+                    if (isSelected) ActionButtonGradient else Brush.linearGradient(listOf(White, White))
+                )
+                .padding(12.dp),
+            contentAlignment = Alignment.CenterStart
         ) {
-            Icon(Icons.Default.Schedule, null, tint = MaterialTheme.colorScheme.primary)
-        }
-        Spacer(modifier = Modifier.width(16.dp))
-        Column {
-            Text(
-                text = time, 
-                fontWeight = FontWeight.Bold, 
-                fontSize = 18.sp, 
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = "$service • $duration min", 
-                fontSize = 14.sp, 
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            )
+            content()
         }
     }
 }
 
 @Composable
 fun BookingSuccessOverlay(doctorName: String, date: String, time: String, onDone: () -> Unit) {
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val onPrimaryColor = MaterialTheme.colorScheme.onPrimary
+    val primaryColor = DeepTeal
+    val onPrimaryColor = White
     
     val scale = remember { Animatable(0.7f) }
     val alpha = remember { Animatable(0f) }
+
+    val currentOnDone by rememberUpdatedState(onDone)
 
     LaunchedEffect(Unit) {
         launch {
@@ -377,8 +93,8 @@ fun BookingSuccessOverlay(doctorName: String, date: String, time: String, onDone
         launch {
             alpha.animateTo(1f, tween(800))
         }
-        delay(3000)
-        onDone()
+        delay(3000.milliseconds)
+        currentOnDone()
     }
 
     Surface(
@@ -411,14 +127,383 @@ fun BookingSuccessOverlay(doctorName: String, date: String, time: String, onDone
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("APPOINTMENT PASS", color = primaryColor, fontWeight = FontWeight.Black, fontSize = 12.sp, letterSpacing = 2.sp)
                     Spacer(modifier = Modifier.height(24.dp))
-                    Text(doctorName, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                    Text(date, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 15.sp)
+                    Text(doctorName, color = RoyalNavy, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    Text(date, color = RoyalNavy.copy(alpha = 0.6f), fontSize = 15.sp)
                     Spacer(modifier = Modifier.height(32.dp))
                     Text(time, color = primaryColor, fontWeight = FontWeight.ExtraBold, fontSize = 36.sp)
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("REF ID: #CX-${UUID.randomUUID().toString().take(6).uppercase()}", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f), fontSize = 10.sp)
+                    Text("REF ID: #CX-${UUID.randomUUID().toString().take(6).uppercase()}", color = RoyalNavy.copy(alpha = 0.3f), fontSize = 10.sp)
                 }
             }
         }
     }
 }
+
+@Composable
+fun BookingSectionHeader(title: String, icon: ImageVector) {
+    Row(
+        modifier = Modifier.padding(horizontal = 24.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(icon, null, tint = DeepTeal, modifier = Modifier.size(22.dp))
+        Spacer(modifier = Modifier.width(10.dp))
+        Text(
+            text = title, 
+            fontWeight = FontWeight.Black, 
+            fontSize = 19.sp, 
+            color = RoyalNavy,
+            letterSpacing = (-0.5).sp
+        )
+    }
+}
+
+@Composable
+fun BookingDateSelector(selected: String, onSelect: (String) -> Unit) {
+    val dates = listOf("MON 24", "TUE 25", "WED 26", "THU 27", "FRI 28")
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(horizontal = 24.dp)
+    ) {
+        items(dates) { date ->
+            val fullDate = "2026-08-${date.split(" ").last()}"
+            val isSelected = selected == fullDate
+            
+            Surface(
+                onClick = { onSelect(fullDate) },
+                modifier = Modifier
+                    .width(85.dp)
+                    .height(110.dp)
+                    .shadow(
+                        elevation = if (isSelected) 12.dp else 2.dp,
+                        shape = RoundedCornerShape(22.dp),
+                        spotColor = if (isSelected) DeepTeal.copy(alpha = 0.4f) else Color.Black.copy(alpha = 0.05f)
+                    ),
+                shape = RoundedCornerShape(22.dp),
+                color = if (isSelected) VibrantTeal else White
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = date.split(" ").first(),
+                        color = if (isSelected) White.copy(alpha = 0.8f) else SlateGray,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = date.split(" ").last(),
+                        color = if (isSelected) White else RoyalNavy,
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppointmentBookingScreen(
+    onBack: () -> Unit,
+    onBookSuccess: () -> Unit,
+    viewModel: BookingViewModel = viewModel()
+) {
+    val context = LocalContext.current
+    val selectedDate by viewModel.selectedDate.collectAsState()
+    var selectedSlot by remember { mutableStateOf<AvailableSlotDTO?>(null) }
+    var isBookingConfirmed by remember { mutableStateOf(value = false) }
+    
+    val dentistsState by viewModel.dentistsState.collectAsState()
+    val servicesState by viewModel.servicesState.collectAsState()
+    
+    val selectedDentist by viewModel.selectedDentist.collectAsState()
+    val selectedServices by viewModel.selectedServices.collectAsState()
+    val availableTimeslots by viewModel.availableTimeslots.collectAsState()
+    val bookingState by viewModel.bookingState.collectAsState()
+
+    LaunchedEffect(bookingState) {
+        when (val state = bookingState) {
+            is Resource.Success -> {
+                NotificationHelper.showBookingNotification(context, selectedDentist?.dentistName ?: "Dentist")
+                isBookingConfirmed = true
+                viewModel.resetState()
+            }
+            is Resource.Error -> {
+                android.widget.Toast.makeText(context, state.message ?: "Booking failed", android.widget.Toast.LENGTH_LONG).show()
+            }
+            else -> {}
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            ElegantTopAppBar(
+                title = "Schedule Visit",
+                onBack = if (isBookingConfirmed) null else onBack
+            )
+        },
+        containerColor = SoftMist
+    ) { padding ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(28.dp)
+            ) {
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                // Dentist Grid
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    BookingSectionHeader("Select Dentist", Icons.Default.Person)
+                    when (dentistsState) {
+                        is Resource.Loading -> Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = VibrantTeal) }
+                        is Resource.Error -> Text(dentistsState.message ?: "Error", color = Color.Red, modifier = Modifier.padding(horizontal = 24.dp))
+                        is Resource.Success -> {
+                            val dentists = dentistsState.data ?: emptyList()
+                            Column(
+                                modifier = Modifier.padding(horizontal = 24.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                dentists.chunked(2).forEach { rowDentists ->
+                                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                        rowDentists.forEach { dentist ->
+                                            DentistSelectionItem(
+                                                dentist = dentist,
+                                                isSelected = selectedDentist?.dentistId == dentist.dentistId,
+                                                onClick = { 
+                                                    viewModel.selectDentist(dentist)
+                                                    selectedSlot = null
+                                                },
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                        }
+                                        if (rowDentists.size == 1) Spacer(modifier = Modifier.weight(1f))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Services Grid
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    BookingSectionHeader("Select Service", Icons.Default.MedicalServices)
+                    when (servicesState) {
+                        is Resource.Loading -> Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = VibrantTeal) }
+                        is Resource.Error -> Text(servicesState.message ?: "Error", color = Color.Red, modifier = Modifier.padding(horizontal = 24.dp))
+                        is Resource.Success -> {
+                            val services = servicesState.data ?: emptyList()
+                            Column(
+                                modifier = Modifier.padding(horizontal = 24.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                services.chunked(2).forEach { rowServices ->
+                                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                        rowServices.forEach { service ->
+                                            BookingServiceItem(
+                                                service = service,
+                                                isSelected = selectedServices.any { it.serviceId == service.serviceId },
+                                                onClick = { 
+                                                    viewModel.toggleService(service)
+                                                    selectedSlot = null
+                                                },
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                        }
+                                        if (rowServices.size == 1) Spacer(modifier = Modifier.weight(1f))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Date Section
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    BookingSectionHeader("Select Date", Icons.Default.Event)
+                    BookingDateSelector(selectedDate) { 
+                        viewModel.checkAndFetchTimeslots(it)
+                        selectedSlot = null
+                    }
+                }
+                
+                // Time Section
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    BookingSectionHeader("Preferred Time", Icons.Default.AccessTime)
+                    Box(modifier = Modifier.padding(horizontal = 24.dp)) {
+                        when (availableTimeslots) {
+                            is Resource.Loading -> Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = VibrantTeal) }
+                            is Resource.Error -> Text(availableTimeslots.message ?: "Select dentist first", color = SlateGray, modifier = Modifier.padding(16.dp))
+                            is Resource.Success -> {
+                                val slots = availableTimeslots.data ?: emptyList()
+                                if (slots.isEmpty()) {
+                                    Text("No times available", color = SlateGray, modifier = Modifier.padding(16.dp))
+                                } else {
+                                    BookingTimeGrid(
+                                        slots = slots,
+                                        selectedSlot = selectedSlot
+                                    ) { 
+                                        selectedSlot = it 
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(140.dp))
+            }
+
+            // Bottom Continue Button
+            AnimatedVisibility(
+                visible = ((selectedSlot != null) && (selectedServices.isNotEmpty()) && (selectedDentist != null) && (!isBookingConfirmed)),
+                enter = slideInVertically { it } + fadeIn(),
+                exit = slideOutVertically { it } + fadeOut(),
+                modifier = Modifier.align(Alignment.BottomCenter)
+            ) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color.Transparent
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp)
+                            .navigationBarsPadding(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        VibrantButton(
+                            text = if (bookingState is Resource.Loading) "Processing..." else "Continue",
+                            onClick = { 
+                                selectedSlot?.let { viewModel.createAppointment(selectedDate, it) }
+                            },
+                            enabled = bookingState !is Resource.Loading
+                        )
+                    }
+                }
+            }
+
+            if (isBookingConfirmed) {
+                BookingSuccessOverlay(
+                    doctorName = selectedDentist?.dentistName ?: "Dentist",
+                    date = selectedDate,
+                    time = selectedSlot?.label ?: "",
+                    onDone = onBookSuccess
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun DentistSelectionItem(dentist: DentistDTO, isSelected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    SelectionCard(
+        isSelected = isSelected,
+        onClick = onClick,
+        modifier = modifier.height(85.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(CircleShape)
+                    .background(if (isSelected) White.copy(alpha = 0.2f) else SoftMist),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.Person, 
+                    null, 
+                    tint = if (isSelected) White else DeepTeal,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column {
+                Text(
+                    text = dentist.dentistName, 
+                    fontWeight = FontWeight.Bold, 
+                    fontSize = 15.sp,
+                    color = if (isSelected) White else RoyalNavy,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(modifier = Modifier.size(8.dp).background(Color(0xFF4CAF50), CircleShape))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Available", 
+                        fontSize = 12.sp,
+                        color = if (isSelected) White.copy(alpha = 0.8f) else Color(0xFF4CAF50),
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun BookingServiceItem(service: BookableServiceDTO, isSelected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    SelectionCard(
+        isSelected = isSelected,
+        onClick = onClick,
+        modifier = modifier.height(70.dp)
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = service.serviceName, 
+                fontWeight = FontWeight.Bold, 
+                fontSize = 16.sp,
+                color = if (isSelected) White else RoyalNavy,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+fun BookingTimeGrid(slots: List<AvailableSlotDTO>, selectedSlot: AvailableSlotDTO?, onSlotSelected: (AvailableSlotDTO) -> Unit) {
+    val rows = slots.chunked(3)
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        rows.forEach { rowSlots ->
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                rowSlots.forEach { slot ->
+                    Box(modifier = Modifier.weight(1f)) {
+                        val isSelected = selectedSlot?.startTime == slot.startTime
+                        Surface(
+                            onClick = { onSlotSelected(slot) },
+                            shape = RoundedCornerShape(14.dp),
+                            shadowElevation = if (isSelected) 6.dp else 1.dp,
+                            color = if (isSelected) VibrantTeal else White
+                        ) {
+                            Box(modifier = Modifier.padding(vertical = 14.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = slot.label, 
+                                    color = if (isSelected) White else RoyalNavy, 
+                                    fontSize = 14.sp, 
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+                repeat(3 - rowSlots.size) { Spacer(modifier = Modifier.weight(1f)) }
+            }
+        }
+    }
+}
+

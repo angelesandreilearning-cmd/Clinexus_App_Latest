@@ -84,21 +84,6 @@ class AuthRepository(private val apiService: ApiService) {
         }
     }
 
-    suspend fun createAppointment(serviceId: String, doctorName: String, date: String, time: String): Resource<CreateAppointmentResponse> {
-        return try {
-            val token = SessionManager.token ?: return Resource.Error("Not authenticated")
-            val request = CreateAppointmentRequest(serviceId, doctorName, date, time)
-            val response = apiService.createAppointment("Bearer $token", request)
-            if (response.isSuccessful && (response.body() != null)) {
-                Resource.Success(response.body()!!)
-            } else {
-                Resource.Error(response.errorBody()?.string() ?: "Failed to create appointment")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "An unexpected error occurred")
-        }
-    }
-
     suspend fun getAppointmentHistory(): Resource<List<AppointmentDTO>> {
         return try {
             val token = SessionManager.token ?: return Resource.Error("Not authenticated")
@@ -155,34 +140,6 @@ class AuthRepository(private val apiService: ApiService) {
         }
     }
 
-    suspend fun updateAppointment(id: String, updates: Map<String, String>): Resource<Unit> {
-        return try {
-            val token = SessionManager.token ?: return Resource.Error("Not authenticated")
-            val response = apiService.updateAppointment(id, "Bearer $token", updates)
-            if (response.isSuccessful) {
-                Resource.Success(Unit)
-            } else {
-                Resource.Error(response.errorBody()?.string() ?: "Update failed")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "An unexpected error occurred")
-        }
-    }
-
-    suspend fun cancelAppointment(id: String): Resource<Unit> {
-        return try {
-            val token = SessionManager.token ?: return Resource.Error("Not authenticated")
-            val response = apiService.deleteAppointment(id, "Bearer $token")
-            if (response.isSuccessful) {
-                Resource.Success(Unit)
-            } else {
-                Resource.Error(response.errorBody()?.string() ?: "Cancellation failed")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "An unexpected error occurred")
-        }
-    }
-
     suspend fun getClinicNews(): Resource<List<ClinicNewsDTO>> {
         return try {
             val token = SessionManager.token ?: return Resource.Error("Not authenticated")
@@ -213,7 +170,7 @@ class AuthRepository(private val apiService: ApiService) {
 
     suspend fun getAvailableContacts(): Resource<List<ContactDTO>> {
         return try {
-            val token = SessionManager.token ?: return Resource.Error("Not authenticated")
+            val token = SessionManager.token ?: return Resource.Error<List<ContactDTO>>("Not authenticated")
             val response = apiService.getAvailableContacts("Bearer $token")
             if (response.isSuccessful && (response.body() != null)) {
                 Resource.Success(response.body()!!)
@@ -227,7 +184,7 @@ class AuthRepository(private val apiService: ApiService) {
 
     suspend fun getConversations(): Resource<List<ConversationDTO>> {
         return try {
-            val token = SessionManager.token ?: return Resource.Error("Not authenticated")
+            val token = SessionManager.token ?: return Resource.Error<List<ConversationDTO>>("Not authenticated")
             val response = apiService.getConversations("Bearer $token")
             if (response.isSuccessful && (response.body() != null)) {
                 Resource.Success(response.body()!!)
@@ -241,7 +198,7 @@ class AuthRepository(private val apiService: ApiService) {
 
     suspend fun getConversationMessages(conversationID: Int): Resource<ConversationMessagesResponse> {
         return try {
-            val token = SessionManager.token ?: return Resource.Error("Not authenticated")
+            val token = SessionManager.token ?: return Resource.Error<ConversationMessagesResponse>("Not authenticated")
             val response = apiService.getConversationMessages("Bearer $token", conversationID)
             if (response.isSuccessful && (response.body() != null)) {
                 Resource.Success(response.body()!!)
@@ -255,7 +212,7 @@ class AuthRepository(private val apiService: ApiService) {
 
     suspend fun sendMessage(receiverAccountType: String, receiverAccountID: Int, messageContent: String): Resource<SendMessageResponse> {
         return try {
-            val token = SessionManager.token ?: return Resource.Error("Not authenticated")
+            val token = SessionManager.token ?: return Resource.Error<SendMessageResponse>("Not authenticated")
             val request = SendMessageRequest(receiverAccountType, receiverAccountID, messageContent)
             val response = apiService.sendMessage("Bearer $token", request)
             if (response.isSuccessful && (response.body() != null)) {
@@ -270,7 +227,7 @@ class AuthRepository(private val apiService: ApiService) {
 
     suspend fun markConversationAsRead(conversationID: Int, lastReadMessageID: Int): Resource<GenericResponse> {
         return try {
-            val token = SessionManager.token ?: return Resource.Error("Not authenticated")
+            val token = SessionManager.token ?: return Resource.Error<GenericResponse>("Not authenticated")
             val request = MarkReadRequest(lastReadMessageID)
             val response = apiService.markConversationAsRead("Bearer $token", conversationID, request)
             if (response.isSuccessful && (response.body() != null)) {
